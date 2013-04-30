@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Formulario));
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnIniciar = new System.Windows.Forms.Button();
             this.lstLogueo = new System.Windows.Forms.ListBox();
             this.chkLimpiarServidorLocal = new System.Windows.Forms.CheckBox();
             this.chkLimpiarServidorRemoto = new System.Windows.Forms.CheckBox();
@@ -43,32 +43,44 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.lctChkTablasLocalesAReplicar = new System.Windows.Forms.CheckedListBox();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btnCargarTablas = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.chkSitioLocalDeBajada = new System.Windows.Forms.CheckBox();
             this.chkSitioLocalDeSubida = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.txtTamañoCache = new System.Windows.Forms.TextBox();
             this.label4 = new System.Windows.Forms.Label();
+            this.btnSeleccionarTodos = new System.Windows.Forms.Button();
+            this.btnSeleccionarNinguno = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.txtTimeOut = new System.Windows.Forms.TextBox();
+            this.lblMensajeCantidad = new System.Windows.Forms.Label();
+            this.lblCantidadDeTablas = new System.Windows.Forms.Label();
+            this.lblCantidadSeleccionadas = new System.Windows.Forms.Label();
+            this.lblMensajeSeleccionadas = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.txtHilosAprovisionar = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.txtHilosReplica = new System.Windows.Forms.TextBox();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // button1
+            // btnIniciar
             // 
-            this.button1.Location = new System.Drawing.Point(26, 10);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(881, 39);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Iniciar";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnIniciar.Location = new System.Drawing.Point(26, 10);
+            this.btnIniciar.Name = "btnIniciar";
+            this.btnIniciar.Size = new System.Drawing.Size(881, 39);
+            this.btnIniciar.TabIndex = 0;
+            this.btnIniciar.Text = "Iniciar";
+            this.btnIniciar.UseVisualStyleBackColor = true;
+            this.btnIniciar.Click += new System.EventHandler(this.btnIniciar_Click);
             // 
             // lstLogueo
             // 
             this.lstLogueo.FormattingEnabled = true;
-            this.lstLogueo.Location = new System.Drawing.Point(240, 194);
+            this.lstLogueo.Location = new System.Drawing.Point(240, 263);
             this.lstLogueo.Name = "lstLogueo";
-            this.lstLogueo.Size = new System.Drawing.Size(667, 433);
+            this.lstLogueo.Size = new System.Drawing.Size(667, 368);
             this.lstLogueo.TabIndex = 1;
             // 
             // chkLimpiarServidorLocal
@@ -134,8 +146,6 @@
             // chkReplicar
             // 
             this.chkReplicar.AutoSize = true;
-            this.chkReplicar.Checked = true;
-            this.chkReplicar.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkReplicar.Location = new System.Drawing.Point(690, 55);
             this.chkReplicar.Name = "chkReplicar";
             this.chkReplicar.Size = new System.Drawing.Size(65, 17);
@@ -149,8 +159,8 @@
             this.txtStringConnectionLocal.Name = "txtStringConnectionLocal";
             this.txtStringConnectionLocal.Size = new System.Drawing.Size(637, 20);
             this.txtStringConnectionLocal.TabIndex = 9;
-            this.txtStringConnectionLocal.Text = "Data Source=.\\MSSQLSERVER2008;Initial Catalog=DRAGONFISH_DEMO;Integrated Security" +
-                "=True";
+            this.txtStringConnectionLocal.Text = "Data Source=.\\SQLEXPRESS;Initial Catalog=DEMO_DEMO;Integrated Security=True;Conne" +
+    "ct Timeout=1";
             // 
             // txtStringConnectionRemoto
             // 
@@ -158,8 +168,7 @@
             this.txtStringConnectionRemoto.Name = "txtStringConnectionRemoto";
             this.txtStringConnectionRemoto.Size = new System.Drawing.Size(748, 20);
             this.txtStringConnectionRemoto.TabIndex = 10;
-            this.txtStringConnectionRemoto.Text = "Data Source=FQ02\\SQLEXPRESS;Initial Catalog=HUB-PRUEBAfr;Integrated Security=Fals" +
-                "e;User ID=remoto;Password=remoto";
+            this.txtStringConnectionRemoto.Text = "Data Source=.;Initial Catalog=HUB-PRUEBAfr;User ID=remoto;Password=1";
             // 
             // label1
             // 
@@ -182,20 +191,27 @@
             // lctChkTablasLocalesAReplicar
             // 
             this.lctChkTablasLocalesAReplicar.FormattingEnabled = true;
-            this.lctChkTablasLocalesAReplicar.Location = new System.Drawing.Point(26, 233);
+            this.lctChkTablasLocalesAReplicar.Items.AddRange(new object[] {
+            "DEBE CARGAR TABLAS"});
+            this.lctChkTablasLocalesAReplicar.Location = new System.Drawing.Point(26, 263);
             this.lctChkTablasLocalesAReplicar.Name = "lctChkTablasLocalesAReplicar";
-            this.lctChkTablasLocalesAReplicar.Size = new System.Drawing.Size(205, 394);
+            this.lctChkTablasLocalesAReplicar.Size = new System.Drawing.Size(205, 334);
             this.lctChkTablasLocalesAReplicar.TabIndex = 13;
+            this.lctChkTablasLocalesAReplicar.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.lctChkTablasLocalesAReplicar_ItemCheck);
+            this.lctChkTablasLocalesAReplicar.Click += new System.EventHandler(this.lctChkTablasLocalesAReplicar_Click);
+            this.lctChkTablasLocalesAReplicar.SelectedIndexChanged += new System.EventHandler(this.lctChkTablasLocalesAReplicar_SelectedIndexChanged);
+            this.lctChkTablasLocalesAReplicar.SelectedValueChanged += new System.EventHandler(this.lctChkTablasLocalesAReplicar_SelectedValueChanged);
+            this.lctChkTablasLocalesAReplicar.Validated += new System.EventHandler(this.lctChkTablasLocalesAReplicar_Validated);
             // 
-            // button2
+            // btnCargarTablas
             // 
-            this.button2.Location = new System.Drawing.Point(26, 194);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(205, 33);
-            this.button2.TabIndex = 14;
-            this.button2.Text = "Cargar tablas";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.btnCargarTablas.Location = new System.Drawing.Point(26, 194);
+            this.btnCargarTablas.Name = "btnCargarTablas";
+            this.btnCargarTablas.Size = new System.Drawing.Size(205, 33);
+            this.btnCargarTablas.TabIndex = 14;
+            this.btnCargarTablas.Text = "Cargar tablas";
+            this.btnCargarTablas.UseVisualStyleBackColor = true;
+            this.btnCargarTablas.Click += new System.EventHandler(this.btnCargarTablas_Click);
             // 
             // panel1
             // 
@@ -233,7 +249,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(-2, 7);
+            this.label3.Location = new System.Drawing.Point(0, 7);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(104, 13);
             this.label3.TabIndex = 0;
@@ -242,7 +258,7 @@
             // txtTamañoCache
             // 
             this.txtTamañoCache.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
-            this.txtTamañoCache.Location = new System.Drawing.Point(724, 75);
+            this.txtTamañoCache.Location = new System.Drawing.Point(724, 71);
             this.txtTamañoCache.Name = "txtTamañoCache";
             this.txtTamañoCache.Size = new System.Drawing.Size(71, 20);
             this.txtTamañoCache.TabIndex = 16;
@@ -251,21 +267,145 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(683, 78);
+            this.label4.Location = new System.Drawing.Point(670, 74);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(38, 13);
+            this.label4.Size = new System.Drawing.Size(49, 13);
             this.label4.TabIndex = 17;
-            this.label4.Text = "Cache";
+            this.label4.Text = "Batching";
+            // 
+            // btnSeleccionarTodos
+            // 
+            this.btnSeleccionarTodos.Location = new System.Drawing.Point(26, 234);
+            this.btnSeleccionarTodos.Name = "btnSeleccionarTodos";
+            this.btnSeleccionarTodos.Size = new System.Drawing.Size(100, 23);
+            this.btnSeleccionarTodos.TabIndex = 18;
+            this.btnSeleccionarTodos.Text = "TODOS";
+            this.btnSeleccionarTodos.UseVisualStyleBackColor = true;
+            this.btnSeleccionarTodos.Click += new System.EventHandler(this.btnSeleccionarTodos_Click);
+            // 
+            // btnSeleccionarNinguno
+            // 
+            this.btnSeleccionarNinguno.Location = new System.Drawing.Point(132, 233);
+            this.btnSeleccionarNinguno.Name = "btnSeleccionarNinguno";
+            this.btnSeleccionarNinguno.Size = new System.Drawing.Size(99, 23);
+            this.btnSeleccionarNinguno.TabIndex = 19;
+            this.btnSeleccionarNinguno.Text = "NINGUNO";
+            this.btnSeleccionarNinguno.UseVisualStyleBackColor = true;
+            this.btnSeleccionarNinguno.Click += new System.EventHandler(this.btnSeleccionarNinguno_Click);
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(671, 97);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(47, 13);
+            this.label5.TabIndex = 21;
+            this.label5.Text = "TimeOut";
+            // 
+            // txtTimeOut
+            // 
+            this.txtTimeOut.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
+            this.txtTimeOut.Location = new System.Drawing.Point(724, 94);
+            this.txtTimeOut.Name = "txtTimeOut";
+            this.txtTimeOut.Size = new System.Drawing.Size(71, 20);
+            this.txtTimeOut.TabIndex = 20;
+            this.txtTimeOut.Text = "30";
+            // 
+            // lblMensajeCantidad
+            // 
+            this.lblMensajeCantidad.AutoSize = true;
+            this.lblMensajeCantidad.Location = new System.Drawing.Point(23, 600);
+            this.lblMensajeCantidad.Name = "lblMensajeCantidad";
+            this.lblMensajeCantidad.Size = new System.Drawing.Size(98, 13);
+            this.lblMensajeCantidad.TabIndex = 22;
+            this.lblMensajeCantidad.Text = "Cantidad de tablas:";
+            // 
+            // lblCantidadDeTablas
+            // 
+            this.lblCantidadDeTablas.AutoSize = true;
+            this.lblCantidadDeTablas.Location = new System.Drawing.Point(124, 600);
+            this.lblCantidadDeTablas.Name = "lblCantidadDeTablas";
+            this.lblCantidadDeTablas.Size = new System.Drawing.Size(13, 13);
+            this.lblCantidadDeTablas.TabIndex = 23;
+            this.lblCantidadDeTablas.Text = "0";
+            // 
+            // lblCantidadSeleccionadas
+            // 
+            this.lblCantidadSeleccionadas.AutoSize = true;
+            this.lblCantidadSeleccionadas.Location = new System.Drawing.Point(124, 614);
+            this.lblCantidadSeleccionadas.Name = "lblCantidadSeleccionadas";
+            this.lblCantidadSeleccionadas.Size = new System.Drawing.Size(13, 13);
+            this.lblCantidadSeleccionadas.TabIndex = 25;
+            this.lblCantidadSeleccionadas.Text = "0";
+            // 
+            // lblMensajeSeleccionadas
+            // 
+            this.lblMensajeSeleccionadas.AutoSize = true;
+            this.lblMensajeSeleccionadas.Location = new System.Drawing.Point(23, 614);
+            this.lblMensajeSeleccionadas.Name = "lblMensajeSeleccionadas";
+            this.lblMensajeSeleccionadas.Size = new System.Drawing.Size(80, 13);
+            this.lblMensajeSeleccionadas.TabIndex = 24;
+            this.lblMensajeSeleccionadas.Text = "Seleccionadas:";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(243, 197);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(115, 13);
+            this.label6.TabIndex = 27;
+            this.label6.Text = "Hilos para Aprovisionar";
+            // 
+            // txtHilosAprovisionar
+            // 
+            this.txtHilosAprovisionar.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
+            this.txtHilosAprovisionar.Enabled = false;
+            this.txtHilosAprovisionar.Location = new System.Drawing.Point(367, 194);
+            this.txtHilosAprovisionar.Name = "txtHilosAprovisionar";
+            this.txtHilosAprovisionar.Size = new System.Drawing.Size(71, 20);
+            this.txtHilosAprovisionar.TabIndex = 26;
+            this.txtHilosAprovisionar.Text = "1";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(243, 223);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(96, 13);
+            this.label7.TabIndex = 29;
+            this.label7.Text = "Hilos para Replicar";
+            // 
+            // txtHilosReplica
+            // 
+            this.txtHilosReplica.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
+            this.txtHilosReplica.Enabled = false;
+            this.txtHilosReplica.Location = new System.Drawing.Point(367, 220);
+            this.txtHilosReplica.Name = "txtHilosReplica";
+            this.txtHilosReplica.Size = new System.Drawing.Size(71, 20);
+            this.txtHilosReplica.TabIndex = 28;
+            this.txtHilosReplica.Text = "1";
             // 
             // Formulario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(919, 652);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.txtHilosReplica);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.txtHilosAprovisionar);
+            this.Controls.Add(this.lblCantidadSeleccionadas);
+            this.Controls.Add(this.lblMensajeSeleccionadas);
+            this.Controls.Add(this.lblCantidadDeTablas);
+            this.Controls.Add(this.lblMensajeCantidad);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.txtTimeOut);
+            this.Controls.Add(this.btnSeleccionarNinguno);
+            this.Controls.Add(this.btnSeleccionarTodos);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.txtTamañoCache);
             this.Controls.Add(this.panel1);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.btnCargarTablas);
             this.Controls.Add(this.lstLogueo);
             this.Controls.Add(this.lctChkTablasLocalesAReplicar);
             this.Controls.Add(this.label2);
@@ -279,14 +419,13 @@
             this.Controls.Add(this.chkDesaprovisionarAmbitosEnServidorLocal);
             this.Controls.Add(this.chkLimpiarServidorRemoto);
             this.Controls.Add(this.chkLimpiarServidorLocal);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnIniciar);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "Formulario";
-            this.Text = "lblCache";
-            this.Load += new System.EventHandler(this.Formulario_Load);
+            this.Text = " ";
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.ResumeLayout(false);
@@ -296,7 +435,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnIniciar;
         private System.Windows.Forms.ListBox lstLogueo;
         private System.Windows.Forms.CheckBox chkLimpiarServidorLocal;
         private System.Windows.Forms.CheckBox chkLimpiarServidorRemoto;
@@ -310,13 +449,25 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckedListBox lctChkTablasLocalesAReplicar;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button btnCargarTablas;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.CheckBox chkSitioLocalDeBajada;
         private System.Windows.Forms.CheckBox chkSitioLocalDeSubida;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox txtTamañoCache;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button btnSeleccionarTodos;
+        private System.Windows.Forms.Button btnSeleccionarNinguno;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox txtTimeOut;
+        private System.Windows.Forms.Label lblMensajeCantidad;
+        private System.Windows.Forms.Label lblCantidadDeTablas;
+        private System.Windows.Forms.Label lblCantidadSeleccionadas;
+        private System.Windows.Forms.Label lblMensajeSeleccionadas;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox txtHilosAprovisionar;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox txtHilosReplica;
     }
 }
 
