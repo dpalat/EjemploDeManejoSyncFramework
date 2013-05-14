@@ -78,8 +78,10 @@
             // lstLogueo
             // 
             this.lstLogueo.FormattingEnabled = true;
+            this.lstLogueo.HorizontalScrollbar = true;
             this.lstLogueo.Location = new System.Drawing.Point(240, 263);
             this.lstLogueo.Name = "lstLogueo";
+            this.lstLogueo.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lstLogueo.Size = new System.Drawing.Size(667, 368);
             this.lstLogueo.TabIndex = 1;
             // 

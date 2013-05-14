@@ -66,6 +66,7 @@ namespace EjemploDeManejoSyncFramework
             catch (Exception de)
             {
                 this.lstLogueo.Items.Add(de.Message);
+                this.procesoFinalizado();
             }
         }
 

@@ -30,7 +30,7 @@ namespace EjemploDeManejoSyncFramework
         {
             Stopwatch stopWatch = new Stopwatch();
             stopWatch.Start();
-
+            
             #region Datos necesarios para replicar -- Configuracion --
             string prefijoParaNombreDeAmbito = artefacto.prefijoParaNombreDeAmbito;
             string esquemaMetadataSyncFramework = artefacto.esquemaMetadataSyncFramework ; //CREATE SCHEMA SyncZooLogic;
@@ -92,8 +92,8 @@ namespace EjemploDeManejoSyncFramework
                 var tablaSplit = tabla.Split('.');
                 string schema = tablaSplit[0];
                 string NombreTabla = tablaSplit[1];
-
-                Ambitos.Add(this.CrearAmbito(String.Format(prefijoParaNombreDeAmbito, schema, NombreTabla), tabla, conexionLocalSql));
+                var conexionSql = ( artefacto.SitioDeSubida ) ? conexionLocalSql :  conexionRemotoSql;
+                Ambitos.Add(this.CrearAmbito(String.Format(prefijoParaNombreDeAmbito, schema, NombreTabla), tabla, conexionSql));
             }
             #endregion
 
