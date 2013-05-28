@@ -37,8 +37,8 @@ namespace EjemploDeManejoSyncFramework
             this.artefacto.LimpiarServidorLocal = this.chkLimpiarServidorLocal.Checked;
             this.artefacto.LimpiarServidorRemoto = this.chkLimpiarServidorRemoto.Checked;
             this.artefacto.RealizarReplica = this.chkReplicar.Checked;
-            this.artefacto.StringConnectionLocal = this.txtStringConnectionLocal.Text;
-            this.artefacto.StringConnectionRemoto = this.txtStringConnectionRemoto.Text;
+            this.artefacto.StringConnectionLocal = this.txtStringConnectionLocal.Text + ";Application Name=Manager de Sync Framework;";
+            this.artefacto.StringConnectionRemoto = this.txtStringConnectionRemoto.Text + ";Application Name=Manager de Sync Framework;"; 
             this.artefacto.ListaDeTablas = this.ObtenerListaDeTablas( this.lctChkTablasLocalesAReplicar.CheckedItems );
             this.artefacto.SitioDeSubida = this.chkSitioLocalDeSubida.Checked;
             this.artefacto.tamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString());
@@ -65,7 +65,7 @@ namespace EjemploDeManejoSyncFramework
             }
             catch (Exception de)
             {
-                this.lstLogueo.Items.Add(de.Message);
+                this.loguear(de.ToString());
                 this.procesoFinalizado();
             }
         }
@@ -103,6 +103,7 @@ namespace EjemploDeManejoSyncFramework
             catch (Exception ed)
             {
                 this.loguear("Full! Error en el proceso de replica: " + ed.ToString());
+                this.procesoFinalizado();
             }
         }
 
