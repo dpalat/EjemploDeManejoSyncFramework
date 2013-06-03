@@ -86,7 +86,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Artefacto.cs" />
+    <Compile Include="ParametrosReplica.cs" />
     <Compile Include="CustomProvider.cs" />
     <Compile Include="ControladorEsquemas.cs" />
     <Compile Include="Formulario.cs">
@@ -124,6 +124,15 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Imagenes\network.ico" />
+    <Content Include="Imagenes\Numer1.png" />
+    <Content Include="Imagenes\Numer2.png" />
+    <Content Include="Imagenes\Numer3.png" />
+    <Content Include="Imagenes\Numer4.png" />
+    <Content Include="Imagenes\Numer5.png" />
+    <Content Include="Imagenes\Numer6.png" />
+    <Content Include="Imagenes\Numer7.png" />
+    <Content Include="Imagenes\Numer8.png" />
+    <Content Include="Imagenes\Shape Orizontal.png" />
     <Content Include="network.ico" />
   </ItemGroup>
   <ItemGroup>

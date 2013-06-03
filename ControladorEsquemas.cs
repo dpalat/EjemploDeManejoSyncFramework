@@ -7,9 +7,9 @@ using System.Data;
 
 namespace EjemploDeManejoSyncFramework
 {
-    public static class ControladorEsquemas
+    public class ControladorEsquemas
     {
-        public static void Controlar(SqlConnection conexionSql, string baseDeDatos, string esquema)
+        public void Controlar(SqlConnection conexionSql, string baseDeDatos, string esquema)
         {
             if ( conexionSql.State != System.Data.ConnectionState.Open )
                 throw new Exception( "No se puede validar esquemas con una conexion que no esta abierta o disponible." );

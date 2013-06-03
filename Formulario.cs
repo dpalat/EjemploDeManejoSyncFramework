@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Data.SqlClient;
+using Microsoft.Synchronization.Data;
 
 namespace EjemploDeManejoSyncFramework
 {
@@ -14,8 +15,7 @@ namespace EjemploDeManejoSyncFramework
     {
         public delegate void Function();
         private ManagerSyncFramework ManagerSync;
-        private Artefacto artefacto;
-        private string esquemaQueSeReplica = "ZooLogic";
+        private ParametrosReplica parametrosReplica;
 
         public Formulario()
         {
@@ -24,32 +24,34 @@ namespace EjemploDeManejoSyncFramework
 
         private void btnIniciar_Click(object sender, EventArgs e)
         {
+            
             this.lstLogueo.Items.Clear();
             this.lstLogueo.Refresh();
             this.ManagerSync = new ManagerSyncFramework();
             this.ManagerSync.onLoguearVisualmente += this.loguear;
             this.ManagerSync.onProcesoFinalizado += this.procesoFinalizado;
-            this.artefacto = new Artefacto();
-            this.artefacto.AprovisionarAmbitosEnServidorLocal = this.chkAprovisionarAmbitosEnServidorLocal.Checked;
-            this.artefacto.AprovisionarAmbitosEnServidorRemoto = this.chkAprovisionarAmbitosEnServidorRemoto.Checked;
-            this.artefacto.DesaprovisionarAmbitosEnServidorLocal = this.chkDesaprovisionarAmbitosEnServidorLocal.Checked;
-            this.artefacto.DesaprovisionarAmbitosEnServidorRemoto = this.chkDesaprovisionarAmbitosEnServidorRemoto.Checked;
-            this.artefacto.LimpiarServidorLocal = this.chkLimpiarServidorLocal.Checked;
-            this.artefacto.LimpiarServidorRemoto = this.chkLimpiarServidorRemoto.Checked;
-            this.artefacto.RealizarReplica = this.chkReplicar.Checked;
-            this.artefacto.StringConnectionLocal = this.txtStringConnectionLocal.Text + ";Application Name=Manager de Sync Framework;";
-            this.artefacto.StringConnectionRemoto = this.txtStringConnectionRemoto.Text + ";Application Name=Manager de Sync Framework;"; 
-            this.artefacto.ListaDeTablas = this.ObtenerListaDeTablas( this.lctChkTablasLocalesAReplicar.CheckedItems );
-            this.artefacto.SitioDeSubida = this.chkSitioLocalDeSubida.Checked;
-            this.artefacto.tamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString());
-            this.artefacto.TimeOut = Convert.ToInt32( this.txtTimeOut.Text.ToString());
-            this.artefacto.prefijoMetadataSyncFramework = "Sql_Replica";
-            this.artefacto.esquemaMetadataSyncFramework = "SyncZooLogic";
-            this.artefacto.prefijoParaNombreDeAmbito = "Novedades_[{0}].[{1}]"; //Novedades_[ZooLogic].[ADT_COMB]
-            this.artefacto.esquemaQueSeReplica = this.esquemaQueSeReplica;
-            this.artefacto.HilosParaAprovisionar = Convert.ToInt32( this.txtHilosAprovisionar.Text.ToString() );
-            this.artefacto.HilosParaReplicar = Convert.ToInt32( this.txtHilosReplica.Text.ToString() );
-
+            this.parametrosReplica = new ParametrosReplica();
+            this.parametrosReplica.AprovisionarAmbitosEnServidorLocal = this.chkAprovisionarAmbitosEnServidorLocal.Checked;
+            this.parametrosReplica.AprovisionarAmbitosEnServidorRemoto = this.chkAprovisionarAmbitosEnServidorRemoto.Checked;
+            this.parametrosReplica.DesaprovisionarAmbitosEnServidorLocal = this.chkDesaprovisionarAmbitosEnServidorLocal.Checked;
+            this.parametrosReplica.DesaprovisionarAmbitosEnServidorRemoto = this.chkDesaprovisionarAmbitosEnServidorRemoto.Checked;
+            this.parametrosReplica.LimpiarServidorLocal = this.chkLimpiarServidorLocal.Checked;
+            this.parametrosReplica.LimpiarServidorRemoto = this.chkLimpiarServidorRemoto.Checked;
+            this.parametrosReplica.RealizarReplica = this.chkReplicar.Checked;
+            this.parametrosReplica.StringConnectionLocal = this.txtStringConnectionLocal.Text + ";Application Name=Manager de Sync Framework;";
+            this.parametrosReplica.StringConnectionRemoto = this.txtStringConnectionRemoto.Text + ";Application Name=Manager de Sync Framework;"; 
+            this.parametrosReplica.ListaDeTablas = this.ObtenerListaDeTablas( this.lctChkTablasLocalesAReplicar.CheckedItems );
+            this.parametrosReplica.SitioDeSubida = this.chkSitioLocalDeSubida.Checked;
+            this.parametrosReplica.tamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString());
+            this.parametrosReplica.TimeOut = Convert.ToInt32( this.txtTimeOut.Text.ToString());
+            this.parametrosReplica.prefijoMetadataSyncFramework = this.txtPrefijoMetadata.Text; // "Sql_Replica";
+            this.parametrosReplica.esquemaMetadataSyncFramework = this.txtEsquemaMetadata.Text; // "SyncZooLogic";
+            this.parametrosReplica.prefijoParaNombreDeAmbito = this.txtPrefijoAmbitos.Text; //"Novedades_[{0}].[{1}]"; //Novedades_[ZooLogic].[ADT_COMB]
+            this.parametrosReplica.esquemaQueSeReplica = this.txtEsquemaAReplicar.Text;
+            this.parametrosReplica.HilosParaAprovisionar = Convert.ToInt32( this.txtHilosAprovisionar.Text.ToString() );
+            this.parametrosReplica.HilosParaReplicar = Convert.ToInt32( this.txtHilosReplica.Text.ToString() );
+            this.parametrosReplica.ReplicarSoloAmbitosconCambios = this.chkSoloConCambios.Checked;
+            this.parametrosReplica.SuscribirseATodosLosEventosDeInformacion = this.chkSuscribirseATodos.Checked;
             if (!this.chkSitioLocalDeSubida.Checked && !this.chkSitioLocalDeBajada.Checked)
             {
                 System.Windows.Forms.MessageBox.Show("Debe indicar si el sitio es de subida o bajada.");
@@ -60,7 +62,7 @@ namespace EjemploDeManejoSyncFramework
             {
                 this.activarBotones(false);
                 System.Threading.Thread nuevoHilo = new System.Threading.Thread(this.IniciarReplica);
-                nuevoHilo.Name = "Replicando manager de sincronizacion";
+                nuevoHilo.Name = "Replicando manager de sincronización";
                 nuevoHilo.Start();                
             }
             catch (Exception de)
@@ -98,7 +100,7 @@ namespace EjemploDeManejoSyncFramework
         {
             try
             {
-                this.ManagerSync.IniciarReplica(this.artefacto);
+                this.ManagerSync.IniciarReplica(this.parametrosReplica);
             }
             catch (Exception ed)
             {
@@ -124,8 +126,8 @@ namespace EjemploDeManejoSyncFramework
                 using (SqlConnection conexionLocalSql = new SqlConnection(this.txtStringConnectionLocal.Text))
                 {
                     conexionLocalSql.Open();
-                    SqlCommand comando = new SqlCommand("Select TABLE_SCHEMA, TABLE_NAME From [DRAGONFISH_DEMO].INFORMATION_SCHEMA.Tables" +
-                        " where table_schema = '" + this.esquemaQueSeReplica + "' order by 1,2");
+                    SqlCommand comando = new SqlCommand("Select TABLE_SCHEMA, TABLE_NAME From INFORMATION_SCHEMA.Tables" +
+                        " where table_schema = '" + this.txtEsquemaAReplicar.Text + "' order by 1,2");
                     comando.Connection = conexionLocalSql;
                     SqlDataReader data = comando.ExecuteReader();
                     this.lctChkTablasLocalesAReplicar.Items.Clear();
@@ -212,6 +214,31 @@ namespace EjemploDeManejoSyncFramework
                 this.lstLogueo.SelectedIndex = this.lstLogueo.Items.Count - 1;
                 this.lstLogueo.SelectedIndex = -1;
             }
+        }
+
+        private void Formulario_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label7_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void txtHilosReplica_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label17_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

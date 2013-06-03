@@ -17,142 +17,57 @@ namespace EjemploDeManejoSyncFramework
     public class ManagerSyncFramework
     {
         private readonly Object obj = new Object();
+        private Semaphore semaforo;
+        private int HilosAprovisionando = 0;
+        private SqlConnection conexionLocalSql;
+        private SqlConnection conexionRemotoSql;
+        private string prefijoParaNombreDeAmbito;
+        private string esquemaMetadataSyncFramework;
+        private string prefijoMetadataSyncFramework;
+        private string esquemaQueSeReplica;
+        private bool SuscribirATodosLosEventos;
+
         public delegate void LoguearEventHandler( string renglon );
         public delegate void replicaFinalizada();
         public event LoguearEventHandler onLoguearVisualmente;
         public event replicaFinalizada onProcesoFinalizado;
         public string TiempoTotalTranscurrido { get; set; }
-        private Semaphore semaforo;
-        private int HilosAprovisionando = 0;
-        Stopwatch stopWatch;
+
         
-        public void IniciarReplica( Artefacto artefacto)
+        public void IniciarReplica( ParametrosReplica parametrosReplica )
         {
-            Stopwatch stopWatch = new Stopwatch();
+            Stopwatch stopWatch = new Stopwatch(); 
             stopWatch.Start();
+
+            //Inicializa las propiedades de esquemas y prefijos en la clase.
+            this.InicializarVariablesDeSeteoSync( parametrosReplica );
             
-            #region Datos necesarios para replicar -- Configuracion --
-            string prefijoParaNombreDeAmbito = artefacto.prefijoParaNombreDeAmbito;
-            string esquemaMetadataSyncFramework = artefacto.esquemaMetadataSyncFramework ; //CREATE SCHEMA SyncZooLogic;
-            string prefijoMetadataSyncFramework = artefacto.prefijoMetadataSyncFramework;
-            #endregion
-
-            #region SE CREA CONEXION CON SQL SERVER
-            //////////////// CONEXION CON SQL SERVER ////////////////
-            SqlConnection conexionLocalSql = new SqlConnection(artefacto.StringConnectionLocal);
-            SqlConnection conexionRemotoSql = new SqlConnection(artefacto.StringConnectionRemoto);
-
-            try
-            {
-                conexionLocalSql.Open();
-            }
-            catch (Exception er)
-            {
-                this.loguear("Al inicio da Error al abrir conexión local!!: " + er.ToString());
-            }
-
-            try
-            {
-                conexionRemotoSql.Open();
-            }
-            catch (Exception er)
-            {
-                this.loguear("Al inicio da Error al abrir conexión remota!!: " + er.ToString());
-            }            
+            //Si se tiene o no configurado el tracing en el app.config, se va a loguear.
+            this.loguearNivelDeTracingConfigurador();
             
+            //Conecta con los endpoints
+            this.ConectarConSQLServer( parametrosReplica.StringConnectionLocal, parametrosReplica.StringConnectionRemoto );
+
+            //Crea los esquemas segun corresponda.
+            this.ControlarEsquemas( parametrosReplica.esquemaQueSeReplica);
+
+            //Limpia toda la metadata relacionada a Sync Framework de ambos endpoints segun corresponda.
+            if (parametrosReplica.LimpiarServidorLocal)  this.DesaprovicionarServidor( this.conexionLocalSql );
+            if (parametrosReplica.LimpiarServidorRemoto) this.DesaprovicionarServidor( this.conexionRemotoSql );
             
-            #endregion
-
-            #region CONTROLA Y CREACION DE ESQUEMAS EN EN SERVIDOR LOCAL Y REMOTO
-            //////////////// CONTROLAMOS ESQUEMAS EN EN SERVIDOR LOCAL Y REMOTO  ////////////////
-            ControladorEsquemas.Controlar( conexionLocalSql, conexionLocalSql.Database, "ZooLogic");
-            ControladorEsquemas.Controlar( conexionLocalSql, conexionLocalSql.Database, esquemaMetadataSyncFramework);
-
-            ControladorEsquemas.Controlar( conexionRemotoSql, conexionRemotoSql.Database, "ZooLogic");
-            ControladorEsquemas.Controlar( conexionRemotoSql, conexionRemotoSql.Database, esquemaMetadataSyncFramework);
-            #endregion
-
-            #region Desaprovicionar totalmente un servidor
-            /////////////// Desaprovicionar Servidor ///////////////
-            if (artefacto.LimpiarServidorLocal)
-            {
-                this.DesaprovicionarServidor(conexionLocalSql, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework);
-            }
-            if (artefacto.LimpiarServidorRemoto)
-            {                
-                this.DesaprovicionarServidor(conexionRemotoSql, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework);
-            }
-            #endregion
-
-            #region Crear coleccion de Ambitos
-            /////////////// AMBITO CON UNA TABLA ///////////////
-            List<DbSyncScopeDescription> Ambitos = new List<DbSyncScopeDescription>() ;
-            foreach (string tabla in artefacto.ListaDeTablas)
-            {
-                var tablaSplit = tabla.Split('.');
-                string schema = tablaSplit[0];
-                string NombreTabla = tablaSplit[1];
-                var conexionSql = ( artefacto.SitioDeSubida ) ? conexionLocalSql :  conexionRemotoSql;
-                Ambitos.Add(this.CrearAmbito(String.Format(prefijoParaNombreDeAmbito, schema, NombreTabla), tabla, conexionSql));
-            }
-            #endregion
-
-            #region Se crea proveedor de ambito y se desaproviciona y aproviciona segun corresponda.
-
-            this.semaforo = new Semaphore(artefacto.HilosParaAprovisionar, artefacto.HilosParaAprovisionar);
-            this.HilosAprovisionando = 0;
-
-            foreach (DbSyncScopeDescription ambito in Ambitos)
-            {
-                
-                DbSyncScopeDescription LocalAmbito = ambito;
-                
-                Thread t = new Thread( delegate(){
-                    this.MantenerAprovisionamientoDeAmbitos(artefacto, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, conexionLocalSql, conexionRemotoSql, LocalAmbito);
-                });
-                t.Start();
-                
-            }
-
-            while ( this.HilosAprovisionando != 0)
-            {
-                Thread.Sleep(500);
-            }
-
-            #endregion  
-
-            #region Orquestador de replica
-            //////////////// ORQUESTADOR DE REPLICA ////////////////
-            SyncOrchestrator orchestrator = new SyncOrchestrator();
-            if (artefacto.SitioDeSubida)
-                orchestrator.Direction = SyncDirectionOrder.Upload;
-            else
-                orchestrator.Direction = SyncDirectionOrder.Download;
+            //Obtiene los ambitos seleccionados.
+            List<DbSyncScopeDescription> Ambitos = this.ObtenerAmbitosAProcesar(parametrosReplica);
             
-            orchestrator.SessionProgress += new EventHandler<SyncStagedProgressEventArgs>(orchestrator_SessionProgress);
-            orchestrator.StateChanged += new EventHandler<SyncOrchestratorStateChangedEventArgs>(orchestrator_StateChanged);
-            #endregion
+            //Elimina y crea los ambitos segun corresponda con lo deseado.
+            this.MantenerAprovisionamientoDeAmbitosEnHilos(parametrosReplica, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, Ambitos);
+            this.MantenerTablaDeAnclasLocal();
 
-            #region Se crean los proveedores de replica por cada ambito y se replica el ambito
-            foreach (DbSyncScopeDescription ambito in Ambitos)
+            //Inicia proceso de replica
+            if (parametrosReplica.RealizarReplica)
             {
-                //////////////// PROVEEDORES DE REPLICA (CONOCEN LA LOGICA DEL MOTOR DE DATOS A REPLICAR)  ////////////////
-                SqlSyncProvider proveedorLocal = this.ObtenerProveedor(ambito.ScopeName, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, conexionLocalSql, artefacto.tamañoDeCache);
-                SqlSyncProvider proveedorRemoto = this.ObtenerProveedor(ambito.ScopeName, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, conexionRemotoSql, artefacto.tamañoDeCache);
-
-                proveedorLocal.CommandTimeout = artefacto.TimeOut;
-                proveedorRemoto.CommandTimeout = artefacto.TimeOut;
-
-                orchestrator.LocalProvider = proveedorLocal;
-                orchestrator.RemoteProvider = proveedorRemoto;
-                if (artefacto.RealizarReplica)
-                {
-                    SyncOperationStatistics statsUpload = orchestrator.Synchronize();
-                    this.loguearEstadisticas(statsUpload, ambito);
-                }
+                SyncOrchestrator orchestrator = this.ObtenerOrquestadorDeReplica(parametrosReplica);
+                this.ReplicarAmbitos( orchestrator, Ambitos, parametrosReplica);
             }
-            #endregion
-
 
             stopWatch.Stop();
             TimeSpan ts = stopWatch.Elapsed;
@@ -162,7 +77,74 @@ namespace EjemploDeManejoSyncFramework
                 this.onProcesoFinalizado();
         }
 
-        private void MantenerAprovisionamientoDeAmbitos(Artefacto artefacto, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, SqlConnection conexionLocalSql, SqlConnection conexionRemotoSql, DbSyncScopeDescription ambito)
+        private void MantenerTablaDeAnclasLocal()
+        {
+            if (this.conexionLocalSql.State != System.Data.ConnectionState.Open)
+            {
+                throw new Exception("No se puede mantener la tabla de anclas sin no esta la conexion local abierta.");
+            }
+            //inner join sys.schemas s on s.schema_id = o.schema_id
+            string comando = "select s.name, o.name from sys.objects o inner join sys.schemas s on s.schema_id = o.schema_id " +
+                              "where s.name = '" + this.esquemaMetadataSyncFramework +
+                                        "' and o.name = '" + this.prefijoMetadataSyncFramework + "_ANCLAS'";
+            using (SqlCommand consulta = new SqlCommand( comando, this.conexionLocalSql))
+            {
+                using (SqlDataReader readerEsquema = consulta.ExecuteReader())
+                {
+                    if (!readerEsquema.HasRows)
+                    {
+                        readerEsquema.Close();
+                        comando = "CREATE TABLE " + this.ObtenerNombreTablaAnclas() +  
+                                " ([id] [int] IDENTITY(1,1) NOT NULL, " +
+                                "  [sync_scope_name] [nvarchar](100) NOT NULL, " +
+                                "        [last_anchor_sync] [int] NOT NULL, " +
+                                "        [last_sync_datetime] [datetime] NOT NULL " +
+                                "    ) ON [PRIMARY]";
+                        using (SqlCommand CrearEsquema = new SqlCommand( comando, this.conexionLocalSql ))
+                        {
+                            CrearEsquema.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+        }
+
+        private string ObtenerNombreTablaAnclas()
+        {
+            return this.esquemaMetadataSyncFramework + "." + this.prefijoMetadataSyncFramework + "_ANCLAS";
+        }
+
+        private SyncOrchestrator ObtenerOrquestadorDeReplica(ParametrosReplica parametros)
+        {
+            SyncOrchestrator orchestrator = new SyncOrchestrator();
+            if (parametros.SitioDeSubida)
+                orchestrator.Direction = SyncDirectionOrder.Upload;
+            else
+                orchestrator.Direction = SyncDirectionOrder.Download;
+
+            if (this.SuscribirATodosLosEventos)
+            {
+                orchestrator.SessionProgress += new EventHandler<SyncStagedProgressEventArgs>(this.orchestrator_SessionProgress);
+                orchestrator.StateChanged += new EventHandler<SyncOrchestratorStateChangedEventArgs>(this.orchestrator_StateChanged);
+            }
+            return orchestrator;
+        }
+
+        private List<DbSyncScopeDescription> ObtenerAmbitosAProcesar(ParametrosReplica parametros )
+        {
+            List<DbSyncScopeDescription> Ambitos = new List<DbSyncScopeDescription>();
+            foreach (string tabla in parametros.ListaDeTablas)
+            {
+                var tablaSplit = tabla.Split('.');
+                string schema = tablaSplit[0];
+                string NombreTabla = tablaSplit[1];
+                var conexionSql = (parametros.SitioDeSubida) ? conexionLocalSql : conexionRemotoSql;
+                Ambitos.Add(this.CrearAmbito(String.Format(this.prefijoParaNombreDeAmbito, schema, NombreTabla), tabla, conexionSql));
+            }
+            return Ambitos;
+        }
+
+        private void MantenerAprovisionamientoDeAmbitos(ParametrosReplica parametros, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, DbSyncScopeDescription ambito)
         {
             this.semaforo.WaitOne();
             this.HilosAprovisionando++;
@@ -172,10 +154,8 @@ namespace EjemploDeManejoSyncFramework
                 SqlConnection NuevaConexionRemotoSql = null;
                 try
                 {
-                    NuevaConexionLocalSql = new SqlConnection(artefacto.StringConnectionLocal);
+                    NuevaConexionLocalSql = new SqlConnection(parametros.StringConnectionLocal);
                     NuevaConexionLocalSql.Open();
-                    ///SqlCommand comando = new SqlCommand("SET TRANSACTION ISOLATION LEVEL snapshot", NuevaConexionLocalSql);
-                    //comando.ExecuteNonQuery();
                 }
                 catch (Exception er)
                 {
@@ -184,10 +164,8 @@ namespace EjemploDeManejoSyncFramework
 
                 try
                 {
-                    NuevaConexionRemotoSql = new SqlConnection(artefacto.StringConnectionRemoto);
+                    NuevaConexionRemotoSql = new SqlConnection(parametros.StringConnectionRemoto);
                     NuevaConexionRemotoSql.Open();
-                    //comando = new SqlCommand("SET TRANSACTION ISOLATION LEVEL snapshot", NuevaConexionRemotoSql);
-                    //comando.ExecuteNonQuery();
                 }
                 catch (Exception er)
                 {
@@ -199,16 +177,16 @@ namespace EjemploDeManejoSyncFramework
                 /////////////// PROVEEDORES DE APROVICIONAMIENTO DE  AMBITOS ///////////////
                 SqlSyncScopeProvisioning proveedorDeAmbitoLocal = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionLocalSql, ambito);
                 SqlSyncScopeProvisioning proveedorDeAmbitoRemoto = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionRemotoSql, ambito);
-                proveedorDeAmbitoLocal.CommandTimeout = artefacto.TimeOut;
-                proveedorDeAmbitoRemoto.CommandTimeout = artefacto.TimeOut;
+                proveedorDeAmbitoLocal.CommandTimeout = parametros.TimeOut;
+                proveedorDeAmbitoRemoto.CommandTimeout = parametros.TimeOut;
 
                 #region Desaprovicionar Ambitos
                 /////////////// DESAPROVICIONAR AMBITOS ///////////////
-                if (artefacto.DesaprovisionarAmbitosEnServidorLocal)
+                if (parametros.DesaprovisionarAmbitosEnServidorLocal)
                 {
                     this.DesaprovicionarAmbito(NuevaConexionLocalSql, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, ambito, proveedorDeAmbitoLocal);
                 }
-                if (artefacto.DesaprovisionarAmbitosEnServidorRemoto)
+                if (parametros.DesaprovisionarAmbitosEnServidorRemoto)
                 {
                     this.DesaprovicionarAmbito(NuevaConexionRemotoSql, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, ambito, proveedorDeAmbitoRemoto);
                 }
@@ -216,16 +194,15 @@ namespace EjemploDeManejoSyncFramework
 
                 #region Aprovicionar Ambitos
                 /////////////// APROVICIONAR AMBITOS ///////////////
-                if (artefacto.AprovisionarAmbitosEnServidorLocal)
+                if (parametros.AprovisionarAmbitosEnServidorLocal)
                 {
                     this.AprovicionarAmbito(ambito, proveedorDeAmbitoLocal);
                 }
-                if (artefacto.AprovisionarAmbitosEnServidorRemoto)
+                if (parametros.AprovisionarAmbitosEnServidorRemoto)
                 {
                     this.AprovicionarAmbito(ambito, proveedorDeAmbitoRemoto);
                 }
                 #endregion
-
 
                 if (NuevaConexionLocalSql.State == ConnectionState.Open)
                 {
@@ -282,11 +259,11 @@ namespace EjemploDeManejoSyncFramework
             
         }
 
-        private void DesaprovicionarServidor(SqlConnection conexionSql, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework )
+        private void DesaprovicionarServidor(SqlConnection conexionSql )
         {
             SqlSyncScopeDeprovisioning DesaprovicionadorDeAmbito = new SqlSyncScopeDeprovisioning(conexionSql);
-            DesaprovicionadorDeAmbito.ObjectSchema = esquemaMetadataSyncFramework;
-            DesaprovicionadorDeAmbito.ObjectPrefix = prefijoMetadataSyncFramework;
+            DesaprovicionadorDeAmbito.ObjectSchema = this.esquemaMetadataSyncFramework;
+            DesaprovicionadorDeAmbito.ObjectPrefix = this.prefijoMetadataSyncFramework;
             try
             {
                 this.loguear("Se va a desaprovicionar el servidor entero " + conexionSql.Database + " Inicio:\t" + DateTime.Now);
@@ -315,28 +292,33 @@ namespace EjemploDeManejoSyncFramework
             return Ambito;
         }
 
-        private SqlSyncProvider ObtenerProveedor(String nombreDeAmbito, String esquemaMetadataSyncFramework, String prefijoMetadataSyncFramework, SqlConnection conexionSql, uint tamañoDeCache)
+        private SqlSyncProvider ObtenerProveedor(String nombreDeAmbito, SqlConnection conexionSql, uint tamañoDeCache)
         {
-            SqlSyncProvider proveedor = new SqlSyncProvider(nombreDeAmbito, conexionSql, prefijoMetadataSyncFramework, esquemaMetadataSyncFramework);
+            SqlSyncProvider proveedor = new SqlSyncProvider(nombreDeAmbito, conexionSql, this.prefijoMetadataSyncFramework, this.esquemaMetadataSyncFramework);
 
             if (tamañoDeCache > 0)
                 proveedor.MemoryDataCacheSize = tamañoDeCache; //KB --> los archivos de cache se guardan en BatchingDirectory (%tmp% por default)
 
             proveedor.Connection = conexionSql;
 
-            proveedor.BatchApplied += new EventHandler<DbBatchAppliedEventArgs>(Proveedor_BatchApplied);
-            proveedor.BatchSpooled += new EventHandler<DbBatchSpooledEventArgs>(Proveedor_BatchSpooled);
-            proveedor.ChangesSelected += new EventHandler<DbChangesSelectedEventArgs>(proveedor_ChangesSelected);
-            proveedor.ApplyingChanges += new EventHandler<DbApplyingChangesEventArgs>(proveedor_ApplyingChanges);
-            proveedor.ApplyChangeFailed += new EventHandler<DbApplyChangeFailedEventArgs>(proveedor_ApplyChangeFailed);
-            proveedor.ApplyMetadataFailed += new EventHandler<ApplyMetadataFailedEventArgs>(proveedor_ApplyMetadataFailed);
-            proveedor.ChangesApplied += new EventHandler<DbChangesAppliedEventArgs>(proveedor_ChangesApplied);
+            proveedor.ApplyChangeFailed += new EventHandler<DbApplyChangeFailedEventArgs>(proveedor_ApplyChangeFailed); //Este tiene logica importante, no quitar.
 
-            proveedor.DbConnectionFailure += new EventHandler<DbConnectionFailureEventArgs>(proveedor_DbConnectionFailure);
-            proveedor.SelectingChanges += new EventHandler<DbSelectingChangesEventArgs>(proveedor_SelectingChanges);
-            proveedor.SyncPeerOutdated += new EventHandler<DbOutdatedEventArgs>(proveedor_SyncPeerOutdated);
-            proveedor.SyncProgress += new EventHandler<DbSyncProgressEventArgs>(proveedor_SyncProgress);
+            if (this.SuscribirATodosLosEventos)
+            {
+                proveedor.BatchApplied += new EventHandler<DbBatchAppliedEventArgs>(Proveedor_BatchApplied);
+                proveedor.BatchSpooled += new EventHandler<DbBatchSpooledEventArgs>(Proveedor_BatchSpooled);
+                proveedor.ChangesSelected += new EventHandler<DbChangesSelectedEventArgs>(proveedor_ChangesSelected);
+                proveedor.ApplyingChanges += new EventHandler<DbApplyingChangesEventArgs>(proveedor_ApplyingChanges);
 
+
+                proveedor.ApplyMetadataFailed += new EventHandler<ApplyMetadataFailedEventArgs>(proveedor_ApplyMetadataFailed);
+                proveedor.ChangesApplied += new EventHandler<DbChangesAppliedEventArgs>(proveedor_ChangesApplied);
+
+                proveedor.DbConnectionFailure += new EventHandler<DbConnectionFailureEventArgs>(proveedor_DbConnectionFailure);
+                proveedor.SelectingChanges += new EventHandler<DbSelectingChangesEventArgs>(proveedor_SelectingChanges);
+                proveedor.SyncPeerOutdated += new EventHandler<DbOutdatedEventArgs>(proveedor_SyncPeerOutdated);
+                proveedor.SyncProgress += new EventHandler<DbSyncProgressEventArgs>(proveedor_SyncProgress);
+            }
             return proveedor;
         }
 
@@ -567,6 +549,262 @@ namespace EjemploDeManejoSyncFramework
                 );
 
             this.loguear("------proveedor_SyncProgress: Details------: \n\r" + mensaje);        
+        }
+
+        private void ControlarEsquemas(string esquemaQueSeReplica )
+        {
+            ControladorEsquemas controlador = new ControladorEsquemas();
+            if (this.conexionLocalSql.State != System.Data.ConnectionState.Open)
+            {
+                this.loguear( "Conexion local no esta disponible. Imposible validar esquemas.");
+            }
+            else
+            {
+                controlador.Controlar(this.conexionLocalSql, conexionLocalSql.Database, esquemaQueSeReplica );
+                controlador.Controlar(this.conexionLocalSql, conexionLocalSql.Database, this.esquemaMetadataSyncFramework);
+            }
+
+            if (this.conexionRemotoSql.State != System.Data.ConnectionState.Open)
+            {
+                this.loguear("Conexion remota no esta disponible. Imposible validar esquemas.");
+            }
+            else
+            {
+                controlador.Controlar(this.conexionRemotoSql, conexionRemotoSql.Database, esquemaQueSeReplica );
+                controlador.Controlar(this.conexionRemotoSql, conexionRemotoSql.Database, this.esquemaMetadataSyncFramework);
+            }
+        }
+
+        private void ConectarConSQLServer(string stringConnectionLocal, string stringConnectionRocal)
+        {
+            //////////////// CONEXION CON SQL SERVER ////////////////
+            this.conexionLocalSql = new SqlConnection(stringConnectionLocal);
+            this.conexionRemotoSql = new SqlConnection(stringConnectionRocal);
+
+            try
+            {
+                conexionLocalSql.Open();
+            }
+            catch (Exception er)
+            {
+                this.loguear("Error! al abrir conexión local!!: " + er.ToString());
+            }
+
+            try
+            {
+                conexionRemotoSql.Open();
+            }
+            catch (Exception er)
+            {
+                this.loguear("Error! al abrir conexión remota!!: " + er.ToString());
+            }
+        }
+
+        private void InicializarVariablesDeSeteoSync(ParametrosReplica parametros)
+        {
+            this.prefijoParaNombreDeAmbito = parametros.prefijoParaNombreDeAmbito;
+            this.loguear("Prefijo para nombre de Ambito: " + prefijoParaNombreDeAmbito);
+            this.esquemaMetadataSyncFramework = parametros.esquemaMetadataSyncFramework;
+            this.loguear("Esquema para Metadata de Sync Framework: " + esquemaMetadataSyncFramework);
+            this.prefijoMetadataSyncFramework = parametros.prefijoMetadataSyncFramework;
+            this.loguear("Prefijo para Metadata de Sync Framework: " + prefijoMetadataSyncFramework);
+            this.esquemaQueSeReplica = parametros.esquemaQueSeReplica;
+            this.loguear("Esquema de la base que se replica: " + parametros.esquemaQueSeReplica);
+            this.SuscribirATodosLosEventos = parametros.SuscribirseATodosLosEventosDeInformacion;
+        }
+
+        private void MantenerAprovisionamientoDeAmbitosEnHilos(ParametrosReplica parametros, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, List<DbSyncScopeDescription> Ambitos)
+        {
+            this.semaforo = new Semaphore(parametros.HilosParaAprovisionar, parametros.HilosParaAprovisionar);
+            this.HilosAprovisionando = 0;
+
+            foreach (DbSyncScopeDescription ambito in Ambitos)
+            {
+
+                DbSyncScopeDescription LocalAmbito = ambito;
+
+                Thread t = new Thread(delegate()
+                {
+                    this.MantenerAprovisionamientoDeAmbitos(parametros, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, LocalAmbito);
+                });
+                t.Start();
+            }
+
+            while (this.HilosAprovisionando != 0)
+            {
+                Thread.Sleep(500);
+            }
+        }
+
+        private void ReplicarAmbitos(SyncOrchestrator orchestrator, List<DbSyncScopeDescription> Ambitos, ParametrosReplica parametrosReplica ) //int timeOut, uint tamañoDeCache)
+        {
+            foreach (DbSyncScopeDescription ambito in Ambitos)
+            {
+                //////////////// PROVEEDORES DE REPLICA (CONOCEN LA LOGICA DEL MOTOR DE DATOS A REPLICAR)  ////////////////
+                SqlSyncProvider proveedorLocal = this.ObtenerProveedor(ambito.ScopeName, conexionLocalSql, parametrosReplica.tamañoDeCache);
+                SqlSyncProvider proveedorRemoto = this.ObtenerProveedor(ambito.ScopeName, conexionRemotoSql, parametrosReplica.tamañoDeCache);
+
+                proveedorLocal.CommandTimeout = parametrosReplica.TimeOut;
+                proveedorRemoto.CommandTimeout = parametrosReplica.TimeOut;
+
+                orchestrator.LocalProvider = proveedorLocal;
+                orchestrator.RemoteProvider = proveedorRemoto;
+                try
+                {
+                    bool replicar = true;
+                    int anclaActual = this.ObtenerAnclaActual();
+                    if (parametrosReplica.ReplicarSoloAmbitosconCambios)
+                    {
+                        replicar = this.ElAmbitoTieneNovedades( ambito );
+                    }
+                    if (replicar)
+                    {
+                        SyncOperationStatistics statsUpload = orchestrator.Synchronize();
+                        this.loguearEstadisticas(statsUpload, ambito);
+                        this.ActualizarAnclaDeSincronizacion(anclaActual, ambito);
+                    }
+                    else
+                    {
+                        this.loguear("Ambito " + ambito.ScopeName + " sin novedades, no se replica.");
+                    }
+                }
+                catch (Exception error)
+                {
+                    this.loguear("Error al replicar el ambito: " + ambito.ScopeName + " Error: " + error.ToString());
+                }
+
+            }
+        }
+
+        private bool ElAmbitoTieneNovedades( DbSyncScopeDescription ambito)
+        {
+            bool retorno = false;
+
+            string tablaAnclas = this.ObtenerNombreTablaAnclas();
+            int anclaDeLaUltimaSincronizacion = this.ObtenerUltimaAnclaDeSincronizacion(ambito);
+
+            string procedimientoAlmacenado = ambito.Tables[0].UnquotedGlobalName + "_selectchanges";
+            SqlCommand cmd = new SqlCommand(procedimientoAlmacenado, this.conexionLocalSql);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@sync_min_timestamp", anclaDeLaUltimaSincronizacion));
+            cmd.Parameters.Add(new SqlParameter("@sync_scope_local_id", 1));
+            cmd.Parameters.Add(new SqlParameter("@sync_scope_restore_count", 1 ));
+            cmd.Parameters.Add(new SqlParameter("@sync_update_peer_key", 1));
+            
+            SqlDataReader rdr = cmd.ExecuteReader();
+            retorno = rdr.HasRows;
+            rdr.Close();
+
+            return retorno;
+        }
+
+        private void ActualizarAnclaDeSincronizacion(int anclaActual, DbSyncScopeDescription ambito)
+        {
+            string tablaAnclas = this.ObtenerNombreTablaAnclas();
+
+            bool agregarRegistro = !this.ExisteRegistroEnTablaAnclas(ambito);
+
+            if (agregarRegistro)
+            {
+                string comando = "insert into " + tablaAnclas + " (sync_scope_name,last_anchor_sync,last_sync_datetime) values " +
+                            "('" + ambito.ScopeName + "'," + anclaActual.ToString() + ", getdate() )" ;
+                using ( SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql) )
+                {
+                    consulta.ExecuteNonQuery();
+                }
+            }
+            else
+            {
+                string comando = "update " + tablaAnclas + " set  last_anchor_sync = " + anclaActual + 
+                        ", last_sync_datetime = getdate() where sync_scope_name = '" + ambito.ScopeName + "'";
+                using ( SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql) )
+                {
+                    consulta.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private bool ExisteRegistroEnTablaAnclas(DbSyncScopeDescription ambito )
+        {
+            string tablaAnclas = this.ObtenerNombreTablaAnclas();
+            string comando = "select 1 from " + tablaAnclas + " where sync_scope_name = '" + ambito.ScopeName + "'";
+            bool existe = false;
+            using (SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql))
+            {
+                using (SqlDataReader reader = consulta.ExecuteReader())
+                {
+                    existe = reader.HasRows;
+                }
+            }
+            return existe;
+        }
+
+        private int ObtenerUltimaAnclaDeSincronizacion(DbSyncScopeDescription ambito)
+        {
+            string tablaAnclas = this.ObtenerNombreTablaAnclas();
+            string comando = "select last_anchor_sync from " + tablaAnclas + " where sync_scope_name = '" + ambito.ScopeName + "'";
+            int ancla = -1;
+            using (SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql))
+            {
+                using (SqlDataReader reader = consulta.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        ancla = reader.GetInt32(0);
+                    }
+                }
+            }
+            return ancla;
+        }
+
+        private int ObtenerAnclaActual()
+        {
+            int ancla = 0;
+            using (SqlCommand consulta = new SqlCommand("select min_active_rowversion() - 1", this.conexionLocalSql))
+            {
+                using (SqlDataReader reader = consulta.ExecuteReader())
+                {
+                    if (reader.HasRows)
+                    {
+                        if (reader.Read())
+                        {
+                            ancla = reader.GetInt32(0);
+                        }
+                        
+                    }
+                    else
+                    {
+                        throw new Exception("No se puede obtener el ancla actual. La consulta no trae registros.");
+                    }
+                }
+            }
+
+            return ancla;
+        }
+
+        private void loguearNivelDeTracingConfigurador()
+        {
+            if (SyncTracer.IsErrorEnabled() || SyncTracer.IsWarningEnabled() || SyncTracer.IsInfoEnabled() || SyncTracer.IsVerboseEnabled())
+            {
+                this.loguear("Tracing activado! revisar en config cual es el archivo.");
+            }
+            else
+            {
+                this.loguear("Tracing desactivado, activar en el config.");
+            }
+
+
+            if (SyncTracer.IsErrorEnabled())
+                this.loguear("Tracing de errores Activado");
+
+            if (SyncTracer.IsWarningEnabled())
+                this.loguear("Tracing de advertencias Activado");
+
+            if (SyncTracer.IsInfoEnabled())
+                this.loguear("Tracing de información Activado");
+
+            if (SyncTracer.IsVerboseEnabled())
+                this.loguear("Tracing de todo Activado");
         }
     }
 }

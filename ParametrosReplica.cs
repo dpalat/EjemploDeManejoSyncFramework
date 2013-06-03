@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EjemploDeManejoSyncFramework
 {
-    public class Artefacto
+    public class ParametrosReplica
     {
         public bool LimpiarServidorRemoto { get; set; }
         public bool LimpiarServidorLocal { get; set; }
@@ -35,5 +35,9 @@ namespace EjemploDeManejoSyncFramework
         public string prefijoParaNombreDeAmbito { get; set; }
 
         public string esquemaQueSeReplica { get; set; }
+
+        public bool ReplicarSoloAmbitosconCambios { get; set; }
+
+        public bool SuscribirseATodosLosEventosDeInformacion { get; set; }
     }
 }
