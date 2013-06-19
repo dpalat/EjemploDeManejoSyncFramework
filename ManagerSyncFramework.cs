@@ -31,6 +31,7 @@ namespace EjemploDeManejoSyncFramework
         public delegate void replicaFinalizada();
         public event LoguearEventHandler onLoguearVisualmente;
         public event replicaFinalizada onProcesoFinalizado;
+        private string nombreDeBaseRemota;
         public string TiempoTotalTranscurrido { get; set; }
 
         
@@ -60,6 +61,7 @@ namespace EjemploDeManejoSyncFramework
             
             //Elimina y crea los ambitos segun corresponda con lo deseado.
             this.MantenerAprovisionamientoDeAmbitosEnHilos(parametrosReplica, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, Ambitos);
+            this.nombreDeBaseRemota = this.conexionRemotoSql.Database;
             this.MantenerTablaDeAnclasLocal();
 
             //Inicia proceso de replica
@@ -83,10 +85,10 @@ namespace EjemploDeManejoSyncFramework
             {
                 throw new Exception("No se puede mantener la tabla de anclas sin no esta la conexion local abierta.");
             }
-            //inner join sys.schemas s on s.schema_id = o.schema_id
+            
             string comando = "select s.name, o.name from sys.objects o inner join sys.schemas s on s.schema_id = o.schema_id " +
                               "where s.name = '" + this.esquemaMetadataSyncFramework +
-                                        "' and o.name = '" + this.prefijoMetadataSyncFramework + "_ANCLAS'";
+                                        "' and o.name = '" + this.prefijoMetadataSyncFramework + "_anchors'";
             using (SqlCommand consulta = new SqlCommand( comando, this.conexionLocalSql))
             {
                 using (SqlDataReader readerEsquema = consulta.ExecuteReader())
@@ -94,9 +96,10 @@ namespace EjemploDeManejoSyncFramework
                     if (!readerEsquema.HasRows)
                     {
                         readerEsquema.Close();
-                        comando = "CREATE TABLE " + this.ObtenerNombreTablaAnclas() +  
+                        comando = "CREATE TABLE " + this.ObtenerNombreTablaAnclas() +
                                 " ([id] [int] IDENTITY(1,1) NOT NULL, " +
                                 "  [sync_scope_name] [nvarchar](100) NOT NULL, " +
+                                "  [sync_remote_DataBase_name] [nvarchar](200) NOT NULL, " +
                                 "        [last_anchor_sync] [int] NOT NULL, " +
                                 "        [last_sync_datetime] [datetime] NOT NULL " +
                                 "    ) ON [PRIMARY]";
@@ -111,7 +114,7 @@ namespace EjemploDeManejoSyncFramework
 
         private string ObtenerNombreTablaAnclas()
         {
-            return this.esquemaMetadataSyncFramework + "." + this.prefijoMetadataSyncFramework + "_ANCLAS";
+            return this.esquemaMetadataSyncFramework + "." + this.prefijoMetadataSyncFramework + "_anchors";
         }
 
         private SyncOrchestrator ObtenerOrquestadorDeReplica(ParametrosReplica parametros)
@@ -152,67 +155,53 @@ namespace EjemploDeManejoSyncFramework
             {
                 SqlConnection NuevaConexionLocalSql = null;
                 SqlConnection NuevaConexionRemotoSql = null;
-                try
+                SqlSyncScopeProvisioning proveedorDeAmbitoLocal = null;
+                SqlSyncScopeProvisioning proveedorDeAmbitoRemoto = null;
+
+                if (parametros.DesaprovisionarAmbitosEnServidorLocal || parametros.AprovisionarAmbitosEnServidorLocal)
                 {
-                    NuevaConexionLocalSql = new SqlConnection(parametros.StringConnectionLocal);
-                    NuevaConexionLocalSql.Open();
+                    try{
+                        NuevaConexionLocalSql = new SqlConnection(parametros.StringConnectionLocal);
+                        NuevaConexionLocalSql.Open();
+                    }
+                    catch (Exception er){
+                        this.loguear("Error al abrir conexión local al crear al aprovisionador!!: " + er.ToString());
+                    }
+                    proveedorDeAmbitoLocal = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionLocalSql, ambito);
+                    proveedorDeAmbitoLocal.CommandTimeout = parametros.TimeOut;
                 }
-                catch (Exception er)
+                if (parametros.DesaprovisionarAmbitosEnServidorLocal || parametros.AprovisionarAmbitosEnServidorRemoto )
                 {
-                    this.loguear("Error al abrir conexión local!!: " + er.ToString());
+                    try
+                    {
+                        NuevaConexionRemotoSql = new SqlConnection(parametros.StringConnectionRemoto);
+                        NuevaConexionRemotoSql.Open();
+                    }
+                    catch (Exception er)
+                    {
+                        this.loguear("Error al abrir conexión remota al crear al aprovisionador!!: " + er.ToString());
+                    }
+                    proveedorDeAmbitoRemoto = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionRemotoSql, ambito);
+                    proveedorDeAmbitoRemoto.CommandTimeout = parametros.TimeOut;
                 }
 
-                try
-                {
-                    NuevaConexionRemotoSql = new SqlConnection(parametros.StringConnectionRemoto);
-                    NuevaConexionRemotoSql.Open();
-                }
-                catch (Exception er)
-                {
-                    this.loguear("Error al abrir conexión remota!!: " + er.ToString());
-                }
+                if ( parametros.DesaprovisionarAmbitosEnServidorLocal)
+                    this.DesaprovicionarAmbito(NuevaConexionLocalSql, ambito, proveedorDeAmbitoLocal);
 
+                if ( parametros.DesaprovisionarAmbitosEnServidorRemoto)
+                    this.DesaprovicionarAmbito(NuevaConexionRemotoSql, ambito, proveedorDeAmbitoRemoto);
 
-
-                /////////////// PROVEEDORES DE APROVICIONAMIENTO DE  AMBITOS ///////////////
-                SqlSyncScopeProvisioning proveedorDeAmbitoLocal = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionLocalSql, ambito);
-                SqlSyncScopeProvisioning proveedorDeAmbitoRemoto = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionRemotoSql, ambito);
-                proveedorDeAmbitoLocal.CommandTimeout = parametros.TimeOut;
-                proveedorDeAmbitoRemoto.CommandTimeout = parametros.TimeOut;
-
-                #region Desaprovicionar Ambitos
-                /////////////// DESAPROVICIONAR AMBITOS ///////////////
-                if (parametros.DesaprovisionarAmbitosEnServidorLocal)
-                {
-                    this.DesaprovicionarAmbito(NuevaConexionLocalSql, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, ambito, proveedorDeAmbitoLocal);
-                }
-                if (parametros.DesaprovisionarAmbitosEnServidorRemoto)
-                {
-                    this.DesaprovicionarAmbito(NuevaConexionRemotoSql, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, ambito, proveedorDeAmbitoRemoto);
-                }
-                #endregion
-
-                #region Aprovicionar Ambitos
-                /////////////// APROVICIONAR AMBITOS ///////////////
-                if (parametros.AprovisionarAmbitosEnServidorLocal)
-                {
+                if ( parametros.AprovisionarAmbitosEnServidorLocal  )
                     this.AprovicionarAmbito(ambito, proveedorDeAmbitoLocal);
-                }
-                if (parametros.AprovisionarAmbitosEnServidorRemoto)
-                {
+
+                if ( parametros.AprovisionarAmbitosEnServidorRemoto)
                     this.AprovicionarAmbito(ambito, proveedorDeAmbitoRemoto);
-                }
-                #endregion
 
-                if (NuevaConexionLocalSql.State == ConnectionState.Open)
-                {
+                if (NuevaConexionLocalSql != null && NuevaConexionLocalSql.State == ConnectionState.Open)
                     NuevaConexionLocalSql.Close();
-                }
 
-                if (NuevaConexionRemotoSql.State == ConnectionState.Open)
-                {
+                if (NuevaConexionRemotoSql != null && NuevaConexionRemotoSql.State == ConnectionState.Open)
                     NuevaConexionRemotoSql.Close();
-                }
             }
             catch (Exception errorcito)
             {
@@ -243,11 +232,11 @@ namespace EjemploDeManejoSyncFramework
             }
         }
 
-        private void DesaprovicionarAmbito(SqlConnection conexionSql, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, DbSyncScopeDescription Ambito, SqlSyncScopeProvisioning proveedorDeAmbito)
+        private void DesaprovicionarAmbito(SqlConnection conexionSql, DbSyncScopeDescription Ambito, SqlSyncScopeProvisioning proveedorDeAmbito)
         {
             SqlSyncScopeDeprovisioning DesaprovicionadorDeAmbito = new SqlSyncScopeDeprovisioning(conexionSql);
-            DesaprovicionadorDeAmbito.ObjectSchema = esquemaMetadataSyncFramework;
-            DesaprovicionadorDeAmbito.ObjectPrefix = prefijoMetadataSyncFramework;
+            DesaprovicionadorDeAmbito.ObjectSchema = this.esquemaMetadataSyncFramework;
+            DesaprovicionadorDeAmbito.ObjectPrefix = this.prefijoMetadataSyncFramework;
             this.loguear("Se va a eliminar el ambito " + Ambito.ScopeName + " Inicio:\t" + DateTime.Now);
             lock(this.obj)
             {
@@ -663,10 +652,6 @@ namespace EjemploDeManejoSyncFramework
                         this.loguearEstadisticas(statsUpload, ambito);
                         this.ActualizarAnclaDeSincronizacion(anclaActual, ambito);
                     }
-                    else
-                    {
-                        this.loguear("Ambito " + ambito.ScopeName + " sin novedades, no se replica.");
-                    }
                 }
                 catch (Exception error)
                 {
@@ -694,6 +679,10 @@ namespace EjemploDeManejoSyncFramework
             SqlDataReader rdr = cmd.ExecuteReader();
             retorno = rdr.HasRows;
             rdr.Close();
+            if (!retorno)
+            {
+                this.loguear("El ambito: " + ambito.ScopeName + " no tiene novedades desde el ancla: " + anclaDeLaUltimaSincronizacion);
+            }
 
             return retorno;
         }
@@ -702,47 +691,37 @@ namespace EjemploDeManejoSyncFramework
         {
             string tablaAnclas = this.ObtenerNombreTablaAnclas();
 
-            bool agregarRegistro = !this.ExisteRegistroEnTablaAnclas(ambito);
-
-            if (agregarRegistro)
+            int ultimaAnclaDeSincronizacion = this.ObtenerUltimaAnclaDeSincronizacion(ambito);
+            string comando = "";
+            if ( ultimaAnclaDeSincronizacion >= 0)
             {
-                string comando = "insert into " + tablaAnclas + " (sync_scope_name,last_anchor_sync,last_sync_datetime) values " +
-                            "('" + ambito.ScopeName + "'," + anclaActual.ToString() + ", getdate() )" ;
-                using ( SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql) )
-                {
-                    consulta.ExecuteNonQuery();
-                }
+
+                comando = "update " + tablaAnclas + " set  last_anchor_sync = " + anclaActual +
+                        ", last_sync_datetime = getdate() where sync_scope_name = '" + ambito.ScopeName + "'" +
+                         " and sync_remote_DataBase_name = '" + this.nombreDeBaseRemota + "'";
+                
             }
             else
             {
-                string comando = "update " + tablaAnclas + " set  last_anchor_sync = " + anclaActual + 
-                        ", last_sync_datetime = getdate() where sync_scope_name = '" + ambito.ScopeName + "'";
-                using ( SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql) )
-                {
-                    consulta.ExecuteNonQuery();
-                }
-            }
-        }
+                comando = "insert into " + tablaAnclas +
+                    " ( sync_scope_name, last_anchor_sync, last_sync_datetime, sync_remote_DataBase_name ) values " +
+                    "('" + ambito.ScopeName + "'," + anclaActual.ToString() + ", getdate(), '" + this.nombreDeBaseRemota + "' )";
 
-        private bool ExisteRegistroEnTablaAnclas(DbSyncScopeDescription ambito )
-        {
-            string tablaAnclas = this.ObtenerNombreTablaAnclas();
-            string comando = "select 1 from " + tablaAnclas + " where sync_scope_name = '" + ambito.ScopeName + "'";
-            bool existe = false;
+            }
+
             using (SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql))
             {
-                using (SqlDataReader reader = consulta.ExecuteReader())
-                {
-                    existe = reader.HasRows;
-                }
+                consulta.ExecuteNonQuery();
             }
-            return existe;
         }
 
         private int ObtenerUltimaAnclaDeSincronizacion(DbSyncScopeDescription ambito)
         {
             string tablaAnclas = this.ObtenerNombreTablaAnclas();
-            string comando = "select last_anchor_sync from " + tablaAnclas + " where sync_scope_name = '" + ambito.ScopeName + "'";
+            string comando = "select last_anchor_sync from " + tablaAnclas +
+                " where sync_scope_name = '" + ambito.ScopeName + "'" +
+                " and sync_remote_DataBase_name = '" + this.nombreDeBaseRemota + "'";
+
             int ancla = -1;
             using (SqlCommand consulta = new SqlCommand(comando, this.conexionLocalSql))
             {

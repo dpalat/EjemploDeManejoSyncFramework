@@ -92,6 +92,7 @@
             this.txtEsquemaAReplicar = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
             this.chkSuscribirseATodos = new System.Windows.Forms.CheckBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
@@ -204,8 +205,8 @@
             this.txtStringConnectionLocal.Name = "txtStringConnectionLocal";
             this.txtStringConnectionLocal.Size = new System.Drawing.Size(686, 20);
             this.txtStringConnectionLocal.TabIndex = 9;
-            this.txtStringConnectionLocal.Text = "Data Source=.\\SQLEXPRESS2012;Initial Catalog=DRAGONFISH_DEMO;Integrated Security=" +
-    "True;Connect Timeout=10";
+            this.txtStringConnectionLocal.Text = "Data Source=.\\SQL2012;Initial Catalog=DRAGONFISH_DEMO;Integrated Security=True;Co" +
+    "nnect Timeout=10";
             // 
             // txtStringConnectionRemoto
             // 
@@ -213,8 +214,8 @@
             this.txtStringConnectionRemoto.Name = "txtStringConnectionRemoto";
             this.txtStringConnectionRemoto.Size = new System.Drawing.Size(686, 20);
             this.txtStringConnectionRemoto.TabIndex = 10;
-            this.txtStringConnectionRemoto.Text = "Data Source=.\\SQLEXPRESS2008;Initial Catalog=HUB-PRUEBAfr;Integrated Security=Tru" +
-    "e;";
+            this.txtStringConnectionRemoto.Text = "Data Source=.\\SQLEXPRESS2012;Initial Catalog=Replica_DEMO_12313-1f39-4087-6542-54" +
+    "498748;Integrated Security=True;";
             // 
             // label1
             // 
@@ -711,6 +712,8 @@
             // chkSuscribirseATodos
             // 
             this.chkSuscribirseATodos.AutoSize = true;
+            this.chkSuscribirseATodos.Checked = true;
+            this.chkSuscribirseATodos.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkSuscribirseATodos.Location = new System.Drawing.Point(790, 210);
             this.chkSuscribirseATodos.Name = "chkSuscribirseATodos";
             this.chkSuscribirseATodos.Size = new System.Drawing.Size(172, 17);
@@ -718,11 +721,25 @@
             this.chkSuscribirseATodos.Text = "Suscribirse a todos los eventos";
             this.chkSuscribirseATodos.UseVisualStyleBackColor = true;
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Enabled = false;
+            this.checkBox1.Location = new System.Drawing.Point(223, 600);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(157, 17);
+            this.checkBox1.TabIndex = 66;
+            this.checkBox1.Text = "Loguear toda la información";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
             // Formulario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(994, 652);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.chkSuscribirseATodos);
             this.Controls.Add(this.txtEsquemaAReplicar);
             this.Controls.Add(this.label18);
@@ -877,6 +894,7 @@
         private System.Windows.Forms.TextBox txtEsquemaAReplicar;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.CheckBox chkSuscribirseATodos;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 
