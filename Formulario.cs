@@ -43,6 +43,7 @@ namespace EjemploDeManejoSyncFramework
             this.parametrosReplica.ListaDeTablas = this.ObtenerListaDeTablas( this.lctChkTablasLocalesAReplicar.CheckedItems );
             this.parametrosReplica.SitioDeSubida = this.chkSitioLocalDeSubida.Checked;
             this.parametrosReplica.tamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString());
+            this.parametrosReplica.TamañoDeTransaccion = Convert.ToUInt32(this.txtTamañoTransaccion.Text.ToString());
             this.parametrosReplica.TimeOut = Convert.ToInt32( this.txtTimeOut.Text.ToString());
             this.parametrosReplica.prefijoMetadataSyncFramework = this.txtPrefijoMetadata.Text; // "Sql_Replica";
             this.parametrosReplica.esquemaMetadataSyncFramework = this.txtEsquemaMetadata.Text; // "SyncZooLogic";

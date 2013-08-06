@@ -170,7 +170,7 @@ namespace EjemploDeManejoSyncFramework
                     proveedorDeAmbitoLocal = this.CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, NuevaConexionLocalSql, ambito);
                     proveedorDeAmbitoLocal.CommandTimeout = parametros.TimeOut;
                 }
-                if (parametros.DesaprovisionarAmbitosEnServidorLocal || parametros.AprovisionarAmbitosEnServidorRemoto )
+                if (parametros.DesaprovisionarAmbitosEnServidorRemoto || parametros.AprovisionarAmbitosEnServidorRemoto)
                 {
                     try
                     {
@@ -281,13 +281,15 @@ namespace EjemploDeManejoSyncFramework
             return Ambito;
         }
 
-        private SqlSyncProvider ObtenerProveedor(String nombreDeAmbito, SqlConnection conexionSql, uint tamañoDeCache)
+        private SqlSyncProvider ObtenerProveedor(String nombreDeAmbito, SqlConnection conexionSql, uint tamañoDeCache, uint tamañoTransaccion)
         {
             SqlSyncProvider proveedor = new SqlSyncProvider(nombreDeAmbito, conexionSql, this.prefijoMetadataSyncFramework, this.esquemaMetadataSyncFramework);
 
             if (tamañoDeCache > 0)
+            {
                 proveedor.MemoryDataCacheSize = tamañoDeCache; //KB --> los archivos de cache se guardan en BatchingDirectory (%tmp% por default)
-
+                proveedor.ApplicationTransactionSize = tamañoTransaccion;
+            }
             proveedor.Connection = conexionSql;
 
             proveedor.ApplyChangeFailed += new EventHandler<DbApplyChangeFailedEventArgs>(proveedor_ApplyChangeFailed); //Este tiene logica importante, no quitar.
@@ -630,8 +632,8 @@ namespace EjemploDeManejoSyncFramework
             foreach (DbSyncScopeDescription ambito in Ambitos)
             {
                 //////////////// PROVEEDORES DE REPLICA (CONOCEN LA LOGICA DEL MOTOR DE DATOS A REPLICAR)  ////////////////
-                SqlSyncProvider proveedorLocal = this.ObtenerProveedor(ambito.ScopeName, conexionLocalSql, parametrosReplica.tamañoDeCache);
-                SqlSyncProvider proveedorRemoto = this.ObtenerProveedor(ambito.ScopeName, conexionRemotoSql, parametrosReplica.tamañoDeCache);
+                SqlSyncProvider proveedorLocal = this.ObtenerProveedor(ambito.ScopeName, conexionLocalSql, parametrosReplica.tamañoDeCache, parametrosReplica.TamañoDeTransaccion);
+                SqlSyncProvider proveedorRemoto = this.ObtenerProveedor(ambito.ScopeName, conexionRemotoSql, parametrosReplica.tamañoDeCache, parametrosReplica.TamañoDeTransaccion);
 
                 proveedorLocal.CommandTimeout = parametrosReplica.TimeOut;
                 proveedorRemoto.CommandTimeout = parametrosReplica.TimeOut;

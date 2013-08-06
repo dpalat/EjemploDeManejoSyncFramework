@@ -93,6 +93,10 @@
             this.label18 = new System.Windows.Forms.Label();
             this.chkSuscribirseATodos = new System.Windows.Forms.CheckBox();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.txtTamañoTransaccion = new System.Windows.Forms.TextBox();
+            this.label19 = new System.Windows.Forms.Label();
+            this.label20 = new System.Windows.Forms.Label();
+            this.label21 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
@@ -192,7 +196,7 @@
             // chkReplicar
             // 
             this.chkReplicar.AutoSize = true;
-            this.chkReplicar.Location = new System.Drawing.Point(792, 101);
+            this.chkReplicar.Location = new System.Drawing.Point(785, 101);
             this.chkReplicar.Name = "chkReplicar";
             this.chkReplicar.Size = new System.Drawing.Size(65, 17);
             this.chkReplicar.TabIndex = 8;
@@ -263,16 +267,16 @@
             // txtTamañoCache
             // 
             this.txtTamañoCache.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
-            this.txtTamañoCache.Location = new System.Drawing.Point(841, 119);
+            this.txtTamañoCache.Location = new System.Drawing.Point(830, 131);
             this.txtTamañoCache.Name = "txtTamañoCache";
-            this.txtTamañoCache.Size = new System.Drawing.Size(71, 20);
+            this.txtTamañoCache.Size = new System.Drawing.Size(64, 20);
             this.txtTamañoCache.TabIndex = 16;
             this.txtTamañoCache.Text = "0";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(787, 122);
+            this.label4.Location = new System.Drawing.Point(780, 134);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(49, 13);
             this.label4.TabIndex = 17;
@@ -301,7 +305,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(788, 145);
+            this.label5.Location = new System.Drawing.Point(781, 158);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(47, 13);
             this.label5.TabIndex = 21;
@@ -310,9 +314,9 @@
             // txtTimeOut
             // 
             this.txtTimeOut.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
-            this.txtTimeOut.Location = new System.Drawing.Point(841, 142);
+            this.txtTimeOut.Location = new System.Drawing.Point(830, 155);
             this.txtTimeOut.Name = "txtTimeOut";
-            this.txtTimeOut.Size = new System.Drawing.Size(71, 20);
+            this.txtTimeOut.Size = new System.Drawing.Size(64, 20);
             this.txtTimeOut.TabIndex = 20;
             this.txtTimeOut.Text = "30";
             // 
@@ -374,7 +378,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(787, 171);
+            this.label7.Location = new System.Drawing.Point(780, 182);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(96, 13);
             this.label7.TabIndex = 29;
@@ -385,7 +389,7 @@
             // 
             this.txtHilosReplica.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
             this.txtHilosReplica.Enabled = false;
-            this.txtHilosReplica.Location = new System.Drawing.Point(887, 168);
+            this.txtHilosReplica.Location = new System.Drawing.Point(880, 179);
             this.txtHilosReplica.Name = "txtHilosReplica";
             this.txtHilosReplica.Size = new System.Drawing.Size(25, 20);
             this.txtHilosReplica.TabIndex = 28;
@@ -426,7 +430,7 @@
             // 
             this.label11.AutoSize = true;
             this.label11.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label11.Location = new System.Drawing.Point(830, 69);
+            this.label11.Location = new System.Drawing.Point(823, 69);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(82, 25);
             this.label11.TabIndex = 33;
@@ -437,7 +441,7 @@
             this.pictureBox3.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox3.Image")));
             this.pictureBox3.Location = new System.Drawing.Point(777, 58);
             this.pictureBox3.Name = "pictureBox3";
-            this.pictureBox3.Size = new System.Drawing.Size(10, 137);
+            this.pictureBox3.Size = new System.Drawing.Size(4, 137);
             this.pictureBox3.TabIndex = 36;
             this.pictureBox3.TabStop = false;
             // 
@@ -582,7 +586,7 @@
             // pictureBox12
             // 
             this.pictureBox12.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox12.Image")));
-            this.pictureBox12.Location = new System.Drawing.Point(790, 60);
+            this.pictureBox12.Location = new System.Drawing.Point(783, 60);
             this.pictureBox12.Name = "pictureBox12";
             this.pictureBox12.Size = new System.Drawing.Size(37, 37);
             this.pictureBox12.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -665,7 +669,7 @@
             // chkSoloConCambios
             // 
             this.chkSoloConCambios.AutoSize = true;
-            this.chkSoloConCambios.Location = new System.Drawing.Point(790, 187);
+            this.chkSoloConCambios.Location = new System.Drawing.Point(783, 204);
             this.chkSoloConCambios.Name = "chkSoloConCambios";
             this.chkSoloConCambios.Size = new System.Drawing.Size(149, 17);
             this.chkSoloConCambios.TabIndex = 60;
@@ -714,7 +718,7 @@
             this.chkSuscribirseATodos.AutoSize = true;
             this.chkSuscribirseATodos.Checked = true;
             this.chkSuscribirseATodos.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkSuscribirseATodos.Location = new System.Drawing.Point(790, 210);
+            this.chkSuscribirseATodos.Location = new System.Drawing.Point(783, 220);
             this.chkSuscribirseATodos.Name = "chkSuscribirseATodos";
             this.chkSuscribirseATodos.Size = new System.Drawing.Size(172, 17);
             this.chkSuscribirseATodos.TabIndex = 65;
@@ -734,11 +738,51 @@
             this.checkBox1.Text = "Loguear toda la información";
             this.checkBox1.UseVisualStyleBackColor = true;
             // 
+            // txtTamañoTransaccion
+            // 
+            this.txtTamañoTransaccion.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
+            this.txtTamañoTransaccion.Location = new System.Drawing.Point(895, 131);
+            this.txtTamañoTransaccion.Name = "txtTamañoTransaccion";
+            this.txtTamañoTransaccion.Size = new System.Drawing.Size(58, 20);
+            this.txtTamañoTransaccion.TabIndex = 67;
+            this.txtTamañoTransaccion.Text = "0";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(835, 117);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(56, 13);
+            this.label19.TabIndex = 68;
+            this.label19.Text = "Cache Sz.";
+            // 
+            // label20
+            // 
+            this.label20.AutoSize = true;
+            this.label20.Location = new System.Drawing.Point(897, 116);
+            this.label20.Name = "label20";
+            this.label20.Size = new System.Drawing.Size(55, 13);
+            this.label20.TabIndex = 69;
+            this.label20.Text = "Trans. Sz.";
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(952, 133);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(27, 13);
+            this.label21.TabIndex = 70;
+            this.label21.Text = "(KB)";
+            // 
             // Formulario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(994, 652);
+            this.Controls.Add(this.label21);
+            this.Controls.Add(this.label20);
+            this.Controls.Add(this.label19);
+            this.Controls.Add(this.txtTamañoTransaccion);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.chkSuscribirseATodos);
             this.Controls.Add(this.txtEsquemaAReplicar);
@@ -895,6 +939,10 @@
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.CheckBox chkSuscribirseATodos;
         private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.TextBox txtTamañoTransaccion;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.Label label21;
     }
 }
 

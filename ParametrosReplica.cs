@@ -23,6 +23,7 @@ namespace EjemploDeManejoSyncFramework
         public bool SitioDeSubida { get; set; }
 
         public uint tamañoDeCache { get; set; }
+        public uint TamañoDeTransaccion { get; set; }        
         public int TimeOut { get; set; }
 
         public string esquemaMetadataSyncFramework { get; set; }
