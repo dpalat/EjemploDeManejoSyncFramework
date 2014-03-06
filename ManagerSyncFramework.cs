@@ -300,8 +300,8 @@ namespace EjemploDeManejoSyncFramework
                 proveedor.BatchSpooled += new EventHandler<DbBatchSpooledEventArgs>(Proveedor_BatchSpooled);
                 proveedor.ChangesSelected += new EventHandler<DbChangesSelectedEventArgs>(proveedor_ChangesSelected);
                 proveedor.ApplyingChanges += new EventHandler<DbApplyingChangesEventArgs>(proveedor_ApplyingChanges);
-
-
+                
+                
                 proveedor.ApplyMetadataFailed += new EventHandler<ApplyMetadataFailedEventArgs>(proveedor_ApplyMetadataFailed);
                 proveedor.ChangesApplied += new EventHandler<DbChangesAppliedEventArgs>(proveedor_ChangesApplied);
 
@@ -335,8 +335,10 @@ namespace EjemploDeManejoSyncFramework
             message = message + "\n\r\tSubida cambios Total\t:" + estadisticas.UploadChangesTotal.ToString();
             message = message + "\n\r\tBajada cambios aplicados\t:" + estadisticas.DownloadChangesApplied.ToString();
             message = message + "\n\r\tBajada cambios c/error\t:" + estadisticas.DownloadChangesFailed.ToString();
-            message = message + "\n\r\tBajada cambios Total\t:" + estadisticas.DownloadChangesTotal.ToString();            
-            this.loguear( message );
+            message = message + "\n\r\tBajada cambios Total\t:" + estadisticas.DownloadChanges
+            Total.ToString();
+
+            this.loguear("Estadisticas", message);
         }
 
         protected void orchestrator_StateChanged(object sender, SyncOrchestratorStateChangedEventArgs e)
@@ -347,8 +349,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tNuevo estado Del Orquestador", e.NewState.ToString(),
                 "\tAnterior estado Del Orquestador", e.OldState.ToString()
                 );
-            //this.loguear("------orchestrator->StateChanged------: \n\r" + mensaje);
-
+            this.loguear( "orchestrator_StateChanged", mensaje );
         }
 
         protected void orchestrator_SessionProgress(object sender, SyncStagedProgressEventArgs e)
@@ -362,7 +363,7 @@ namespace EjemploDeManejoSyncFramework
                "\tTrabajo total: ", e.TotalWork
                );
 
-            this.loguear( mensaje );
+            this.loguear("orchestrator_SessionProgress",mensaje);            
         }
 
         protected void Proveedor_BatchApplied(object sender, DbBatchAppliedEventArgs e)
@@ -374,7 +375,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tBatch Number:", e.CurrentBatchNumber,
                 "\tTotal Batches To Apply :", e.TotalBatchesToApply);
 
-            this.loguear("------BatchApplied event fired------: \n\r" + mensaje);
+            this.loguear("Proveedor_BatchApplied",mensaje);
         }
 
         protected void Proveedor_BatchSpooled(object sender, DbBatchSpooledEventArgs e)
@@ -387,10 +388,9 @@ namespace EjemploDeManejoSyncFramework
                 "\tBatch Size      :", e.DataCacheSize,
                 "\tBatch Number    :", e.CurrentBatchNumber,
                 "\tTotal Batches   :", e.TotalBatchesSpooled,
-                "\tBatch Watermark :", ReadTableWatermarks(e.CurrentBatchTableWatermarks));
+                "\tBatch Watermark :", this.ReadTableWatermarks(e.CurrentBatchTableWatermarks));
 
-            this.loguear("------BatchSpooled event fired: Details------: \n\r" + mensaje);
-
+            this.loguear("Proveedor_BatchSpooled",mensaje);
         }
 
         protected void proveedor_ChangesSelected(object sender, DbChangesSelectedEventArgs e)
@@ -404,7 +404,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tSession Id      :", e.Session.SessionId,
                 "\tTransaccion     :", e.Transaction.ToString());
 
-            this.loguear("------Proveedor_ChangesSelected: Details------: \n\r" + mensaje);
+            this.loguear( "proveedor_ChangesSelected",mensaje);
         }
 
         protected void proveedor_ApplyingChanges(object sender, DbApplyingChangesEventArgs e)
@@ -419,7 +419,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tTransaccion     :", e.Transaction.ToString()
                 );
 
-            this.loguear("------proveedor_ApplyingChanges: Details------: \n\r" + mensaje);
+            this.loguear( "proveedor_ApplyingChanges", mensaje);
         }
 
         protected void proveedor_ChangesApplied(object sender, DbChangesAppliedEventArgs e)
@@ -433,7 +433,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tTransaccion     :", e.Transaction.ToString()
                 );
 
-            this.loguear("------proveedor_ChangesApplied: Details------: \n\r" + mensaje);
+            this.loguear("proveedor_ChangesApplied",mensaje);
         }
 
         protected void proveedor_ApplyChangeFailed(object sender, DbApplyChangeFailedEventArgs e)
@@ -450,7 +450,8 @@ namespace EjemploDeManejoSyncFramework
                 );
             e.Action = ApplyAction.RetryWithForceWrite; //Aplicar cambios del lado del local
 
-            this.loguear("------proveedor_ApplyChangeFailed: Details------: \n\r" + mensaje);
+            this.loguear("proveedor_ApplyChangeFailed", mensaje);
+
         }
 
         protected void proveedor_ApplyMetadataFailed(object sender, ApplyMetadataFailedEventArgs e)
@@ -460,14 +461,15 @@ namespace EjemploDeManejoSyncFramework
                 "{0}:{1}\n\r{2}:{3}\n\r{4}:{5}\n\r{6}:{7}\n\r{8}:{9}\n\r",
                 "\tSource Database :", e.Connection.Database,
                 "\tContexto        :", e.Context,
-                "\tError           :", e.Error.Message.ToString(),
+                "\tError           :", e.Error.ToString(),
                 "\tSession Id      :", e.Session.SessionId,
                 "\tTransaccion     :", e.Transaction.ToString()
                 );
 
-            this.loguear("------proveedor_ApplyMetadataFailed: Details------: \n\r" + mensaje);
+            this.loguear("proveedor_ApplyMetadataFailed", mensaje );
         }
 
+        [DebuggerHiddenAttribute]
         protected void loguear(string mensaje)
         {
 
@@ -480,6 +482,19 @@ namespace EjemploDeManejoSyncFramework
             }
 
         }
+
+        [DebuggerHiddenAttribute]
+        protected void loguear(string Titulo, string mensaje)
+        {
+
+            this.loguear(new string('*', 200));
+            this.loguear(new string('*', 200));
+            this.loguear(new string('*', 50).Replace("*", "*-") + Titulo.ToUpper() + new string('*', 50).Replace("*", "*-"));
+            this.loguear(mensaje);
+            this.loguear(new string('*', 200));
+            this.loguear(new string('*', 200));
+        }
+
 
         private bool ExisteAmbito(string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, SqlConnection conexionSql, DbSyncScopeDescription ambito)
         {
@@ -503,7 +518,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tReintentos       :", e.RetryCount.ToString()
                 );
 
-            this.loguear("------proveedor_DbConnectionFailure: Details------: \n\r" + mensaje);        
+            this.loguear( "proveedor_DbConnectionFailure", mensaje);
         }
 
         protected void proveedor_SelectingChanges(object sender, DbSelectingChangesEventArgs e)
@@ -515,7 +530,7 @@ namespace EjemploDeManejoSyncFramework
                 "\tTotal actualizados:", e.Context.ScopeProgress.TotalUpdates.ToString()
                 );
 
-            this.loguear("------proveedor_SelectingChanges: Details------: \n\r" + mensaje);        
+            this.loguear( "proveedor_SelectingChanges", mensaje);        
         }
 
         protected void proveedor_SyncPeerOutdated(object sender, DbOutdatedEventArgs e)
@@ -527,19 +542,21 @@ namespace EjemploDeManejoSyncFramework
                 "\tId session:", e.Session.SessionId.ToString()
                 );
 
-            this.loguear("------proveedor_SyncPeerOutdated: Details------: \n\r" + mensaje);        
+            this.loguear("proveedor_SyncPeerOutdated", mensaje);        
         }
 
         protected void proveedor_SyncProgress(object sender, DbSyncProgressEventArgs e)
         {
             String mensaje =
                string.Format(
-                "{0}:{1}\n\r{2}:{3}",
+                "{0}:{1}\n\r{2}:{3}\n\r{4}:{5}\n\r{6}:{7}",
                 "\tEstado :", e.Stage,
-                "\tCantidad de cambios:", e.TableProgress.TotalChanges.ToString()
+                "\tCantidad de cambios Aplicados:", e.TableProgress.ChangesApplied.ToString(),
+                "\tCantidad de cambios Pendientes:", e.TableProgress.ChangesPending.ToString(),
+                "\tCantidad de cambios:", e.TableProgress.TotalChanges.ToString()              
                 );
 
-            this.loguear("------proveedor_SyncProgress: Details------: \n\r" + mensaje);        
+            this.loguear( "proveedor_SyncProgress", mensaje);        
         }
 
         private void ControlarEsquemas(string esquemaQueSeReplica )
@@ -640,6 +657,7 @@ namespace EjemploDeManejoSyncFramework
 
                 orchestrator.LocalProvider = proveedorLocal;
                 orchestrator.RemoteProvider = proveedorRemoto;
+                
                 try
                 {
                     bool replicar = true;
@@ -789,5 +807,6 @@ namespace EjemploDeManejoSyncFramework
         }
     }
 }
+
 
 
