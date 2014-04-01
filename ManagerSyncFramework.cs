@@ -335,8 +335,7 @@ namespace EjemploDeManejoSyncFramework
             message = message + "\n\r\tSubida cambios Total\t:" + estadisticas.UploadChangesTotal.ToString();
             message = message + "\n\r\tBajada cambios aplicados\t:" + estadisticas.DownloadChangesApplied.ToString();
             message = message + "\n\r\tBajada cambios c/error\t:" + estadisticas.DownloadChangesFailed.ToString();
-            message = message + "\n\r\tBajada cambios Total\t:" + estadisticas.DownloadChanges
-            Total.ToString();
+            message = message + "\n\r\tBajada cambios Total\t:" + estadisticas.DownloadChangesTotal.ToString();
 
             this.loguear("Estadisticas", message);
         }

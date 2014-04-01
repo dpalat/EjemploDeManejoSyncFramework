@@ -122,9 +122,25 @@ namespace EjemploDeManejoSyncFramework
 
         private void btnCargarTablas_Click(object sender, EventArgs e)
         {
+
+            if (!(this.chkSitioLocalDeBajada.Checked || this.chkSitioLocalDeSubida.Checked))
+            {
+                MessageBox.Show("Se requiere setear el sentido de comunicación SUBIDA o BAJADA");
+                return;
+            }
+
             try
             {
-                using (SqlConnection conexionLocalSql = new SqlConnection(this.txtStringConnectionLocal.Text))
+                string cadeDeConexion = this.txtStringConnectionLocal.Text;
+
+
+                if (this.chkSitioLocalDeBajada.Checked)
+                {
+                    //La estructura sale del sitio que tiene los datos.
+                    cadeDeConexion = this.txtStringConnectionRemoto.Text;
+                }
+
+                using (SqlConnection conexionLocalSql = new SqlConnection(cadeDeConexion))
                 {
                     conexionLocalSql.Open();
                     SqlCommand comando = new SqlCommand("Select TABLE_SCHEMA, TABLE_NAME From INFORMATION_SCHEMA.Tables" +
@@ -138,6 +154,7 @@ namespace EjemploDeManejoSyncFramework
                     }
                     this.actulizarMensajesDeCantidadDeTablas();
                 }
+                
             }
             catch (Exception dde)
             {

@@ -209,8 +209,8 @@
             this.txtStringConnectionLocal.Name = "txtStringConnectionLocal";
             this.txtStringConnectionLocal.Size = new System.Drawing.Size(686, 20);
             this.txtStringConnectionLocal.TabIndex = 9;
-            this.txtStringConnectionLocal.Text = "Data Source=.\\SQL2012;Initial Catalog=DRAGONFISH_DEMO;Integrated Security=False;U" +
-    "ser ID=test;Password=1234;Application Name=PROVEEDORDEPRUEBA;";
+            this.txtStringConnectionLocal.Text = "Data Source=.\\SQLexpress2014;Initial Catalog=prueba01;Integrated Security=True;Ap" +
+    "plication Name=PROVEEDORDEPRUEBA;";
             // 
             // txtStringConnectionRemoto
             // 
@@ -218,8 +218,8 @@
             this.txtStringConnectionRemoto.Name = "txtStringConnectionRemoto";
             this.txtStringConnectionRemoto.Size = new System.Drawing.Size(686, 20);
             this.txtStringConnectionRemoto.TabIndex = 10;
-            this.txtStringConnectionRemoto.Text = "Data Source=.\\SQL2012;Initial Catalog=prueba001;Integrated Security=False;User ID" +
-    "=test;Password=1234;Application Name=PROVEEDORDEPRUEBA;";
+            this.txtStringConnectionRemoto.Text = "Data Source=.\\SQLexpress2014;Initial Catalog=DRAGONFISH_DEMO;Integrated Security=" +
+    "True;Application Name=PROVEEDORDEPRUEBA;";
             // 
             // label1
             // 
