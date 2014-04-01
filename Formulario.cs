@@ -152,7 +152,7 @@ namespace EjemploDeManejoSyncFramework
                     {
                         this.lctChkTablasLocalesAReplicar.Items.Add(data[0] + "." + data[1]);
                     }
-                    this.actulizarMensajesDeCantidadDeTablas();
+                    this.actulizarMensajesDeCantidadDeTablas( true );
                 }
                 
             }
@@ -160,6 +160,23 @@ namespace EjemploDeManejoSyncFramework
             {
                 this.loguear("Error al cargar las tablas: " + dde.ToString());
             }
+        }
+
+        private void actulizarMensajesDeCantidadDeTablas( bool mostranMensajeDeCantidad )
+        {
+            this.actulizarMensajesDeCantidadDeTablas();
+            if ( mostranMensajeDeCantidad && this.lctChkTablasLocalesAReplicar.Items.Count < 1 )
+            {
+                string orgine = "local";
+                if (this.chkSitioLocalDeBajada.Checked)
+                {
+                    orgine = "remoto";
+                }
+
+                MessageBox.Show("No se encontraron tablas en el " + orgine);
+
+            }
+
         }
 
         private void actulizarMensajesDeCantidadDeTablas()
