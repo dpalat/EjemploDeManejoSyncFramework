@@ -173,7 +173,7 @@ namespace EjemploDeManejoSyncFramework
                     orgine = "remoto";
                 }
 
-                MessageBox.Show("No se encontraron tablas en el " + orgine);
+                MessageBox.Show("No se encontraron tablas del esquema " + this.txtEsquemaAReplicar.Text + " en el " + orgine);
 
             }
 
