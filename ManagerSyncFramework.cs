@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Collections.ObjectModel;
-using System.Data.SqlClient;
 using System.Data;
-using Microsoft.Synchronization.Data.SqlServer;
-using Microsoft.Synchronization.Data;
-using Microsoft.Synchronization;
-using System.Transactions;
-using System.Threading;
+using System.Data.SqlClient;
 using System.Diagnostics;
+using System.Text;
+using System.Threading;
+using Microsoft.Synchronization;
+using Microsoft.Synchronization.Data;
+using Microsoft.Synchronization.Data.SqlServer;
+using Newtonsoft.Json;
 
 namespace EjemploDeManejoSyncFramework
 {
@@ -133,17 +131,33 @@ namespace EjemploDeManejoSyncFramework
             return orchestrator;
         }
 
-        private List<DbSyncScopeDescription> ObtenerAmbitosAProcesar(ParametrosReplica parametros )
+
+        public string ObtenerAmbitosSerializados(ParametrosReplica parametros)
         {
+            this.InicializarVariablesDeSeteoSync(parametros);
+            ConectarConSQLServer(parametros.StringConnectionLocal, parametros.StringConnectionRemoto);
+
+            
+            var ambitos = ObtenerAmbitosAProcesar(parametros);
+            
+            
+            return JsonConvert.SerializeObject(ambitos);
+        }
+
+        private List<DbSyncScopeDescription> ObtenerAmbitosAProcesar(ParametrosReplica parametros)
+        {
+            this.loguear("Inicia proceso de crear ambitos.");
             List<DbSyncScopeDescription> Ambitos = new List<DbSyncScopeDescription>();
             foreach (string tabla in parametros.ListaDeTablas)
             {
                 var tablaSplit = tabla.Split('.');
                 string schema = tablaSplit[0];
                 string NombreTabla = tablaSplit[1];
-                var conexionSql = (parametros.SitioDeSubida) ? conexionLocalSql : conexionRemotoSql;
-                Ambitos.Add(this.CrearAmbito(String.Format(this.prefijoParaNombreDeAmbito, schema, NombreTabla), tabla, conexionSql));
+                var conexionSql = (parametros.UsarDescripcionLocal) ? conexionLocalSql : conexionRemotoSql;
+                var ambito = CrearAmbito(String.Format(this.prefijoParaNombreDeAmbito, schema, NombreTabla), tabla, conexionSql);
+                Ambitos.Add(ambito);
             }
+            this.loguear("Finalizado proceso de crear ambitos, ambitos creados: " + Ambitos.Count);
             return Ambitos;
         }
 
@@ -218,17 +232,17 @@ namespace EjemploDeManejoSyncFramework
         {
             if (proveedorDeAmbito.ScopeExists(Ambito.ScopeName))
             {
-                this.loguear("El ambito " + Ambito.ScopeName + " ya existe!! Inicio:\t" + DateTime.Now);
+                this.loguear("El ambito " + Ambito.ScopeName + " ya existe!!");
             }
             else
             {
-                this.loguear("Se va a crear el ambito " + Ambito.ScopeName + " Inicio:\t" + DateTime.Now);
+                this.loguear("Se va a crear el ambito " + Ambito.ScopeName);
 
                 proveedorDeAmbito.PopulateFromScopeDescription(Ambito);
                 proveedorDeAmbito.SetCreateTableDefault(DbSyncCreationOption.CreateOrUseExisting);
                 proveedorDeAmbito.Apply();
 
-                this.loguear("Se creo el ambito " + Ambito.ScopeName + " fin:\t" + DateTime.Now);
+                this.loguear("Se creo el ambito " + Ambito.ScopeName );
             }
         }
 
@@ -237,14 +251,14 @@ namespace EjemploDeManejoSyncFramework
             SqlSyncScopeDeprovisioning DesaprovicionadorDeAmbito = new SqlSyncScopeDeprovisioning(conexionSql);
             DesaprovicionadorDeAmbito.ObjectSchema = this.esquemaMetadataSyncFramework;
             DesaprovicionadorDeAmbito.ObjectPrefix = this.prefijoMetadataSyncFramework;
-            this.loguear("Se va a eliminar el ambito " + Ambito.ScopeName + " Inicio:\t" + DateTime.Now);
+            this.loguear("Se va a eliminar el ambito " + Ambito.ScopeName );
             lock(this.obj)
             {
                 if (proveedorDeAmbito.ScopeExists(Ambito.ScopeName))            
                     DesaprovicionadorDeAmbito.DeprovisionScope(Ambito.ScopeName);
             }
             
-            this.loguear("Se elimino el ambito " + Ambito.ScopeName + " fin:\t" + DateTime.Now);
+            this.loguear("Se elimino el ambito " + Ambito.ScopeName);
             
         }
 
@@ -255,9 +269,9 @@ namespace EjemploDeManejoSyncFramework
             DesaprovicionadorDeAmbito.ObjectPrefix = this.prefijoMetadataSyncFramework;
             try
             {
-                this.loguear("Se va a desaprovicionar el servidor entero " + conexionSql.Database + " Inicio:\t" + DateTime.Now);
+                this.loguear("Se va a desaprovicionar el servidor entero " + conexionSql.Database );
                 DesaprovicionadorDeAmbito.DeprovisionStore();
-                this.loguear("Se desaprovicio el servidor entero " + conexionSql.Database + " fin:\t" + DateTime.Now);
+                this.loguear("Se desaprovicio el servidor entero " + conexionSql.Database );
             }
             catch (Exception e)
             {

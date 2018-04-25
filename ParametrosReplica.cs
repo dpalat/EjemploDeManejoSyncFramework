@@ -18,6 +18,7 @@ namespace EjemploDeManejoSyncFramework
         public string StringConnectionLocal { get; set; }
         public string StringConnectionRemoto { get; set; }
 
+
         public List<string> ListaDeTablas { get; set; }
 
         public bool SitioDeSubida { get; set; }
@@ -40,5 +41,9 @@ namespace EjemploDeManejoSyncFramework
         public bool ReplicarSoloAmbitosconCambios { get; set; }
 
         public bool SuscribirseATodosLosEventosDeInformacion { get; set; }
+
+        public bool UsarDescripcionLocal { get; set; }
+
+        public bool UsarDescripcionRemota { get; set; }
     }
 }

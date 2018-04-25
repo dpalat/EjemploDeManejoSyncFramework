@@ -1,6 +1,6 @@
 ﻿namespace EjemploDeManejoSyncFramework
 {
-    partial class Formulario
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Formulario));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.btnIniciar = new System.Windows.Forms.Button();
             this.lstLogueo = new System.Windows.Forms.ListBox();
             this.chkLimpiarServidorLocal = new System.Windows.Forms.CheckBox();
@@ -92,11 +92,14 @@
             this.txtEsquemaAReplicar = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
             this.chkSuscribirseATodos = new System.Windows.Forms.CheckBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.txtTamañoTransaccion = new System.Windows.Forms.TextBox();
             this.label19 = new System.Windows.Forms.Label();
             this.label20 = new System.Windows.Forms.Label();
             this.label21 = new System.Windows.Forms.Label();
+            this.chkUsarDescripcionLocal = new System.Windows.Forms.CheckBox();
+            this.chkUsarDescripcionRemota = new System.Windows.Forms.CheckBox();
+            this.btnSerializarAmbitos = new System.Windows.Forms.Button();
+            this.pictureBox15 = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox6)).BeginInit();
@@ -111,6 +114,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox12)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox13)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox14)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox15)).BeginInit();
             this.SuspendLayout();
             // 
             // btnIniciar
@@ -207,19 +211,15 @@
             // 
             this.txtStringConnectionLocal.Location = new System.Drawing.Point(296, 8);
             this.txtStringConnectionLocal.Name = "txtStringConnectionLocal";
-            this.txtStringConnectionLocal.Size = new System.Drawing.Size(686, 20);
+            this.txtStringConnectionLocal.Size = new System.Drawing.Size(646, 20);
             this.txtStringConnectionLocal.TabIndex = 9;
-            this.txtStringConnectionLocal.Text = "Data Source=.\\SQLexpress2014;Initial Catalog=prueba01;Integrated Security=True;Ap" +
-    "plication Name=PROVEEDORDEPRUEBA;";
             // 
             // txtStringConnectionRemoto
             // 
             this.txtStringConnectionRemoto.Location = new System.Drawing.Point(296, 34);
             this.txtStringConnectionRemoto.Name = "txtStringConnectionRemoto";
-            this.txtStringConnectionRemoto.Size = new System.Drawing.Size(686, 20);
+            this.txtStringConnectionRemoto.Size = new System.Drawing.Size(646, 20);
             this.txtStringConnectionRemoto.TabIndex = 10;
-            this.txtStringConnectionRemoto.Text = "Data Source=.\\SQLexpress2014;Initial Catalog=DRAGONFISH_DEMO;Integrated Security=" +
-    "True;Application Name=PROVEEDORDEPRUEBA;";
             // 
             // label1
             // 
@@ -383,7 +383,6 @@
             this.label7.Size = new System.Drawing.Size(96, 13);
             this.label7.TabIndex = 29;
             this.label7.Text = "Hilos para Replicar";
-            this.label7.Click += new System.EventHandler(this.label7_Click);
             // 
             // txtHilosReplica
             // 
@@ -555,7 +554,7 @@
             // chkSitioLocalDeSubida
             // 
             this.chkSitioLocalDeSubida.AutoSize = true;
-            this.chkSitioLocalDeSubida.Location = new System.Drawing.Point(57, 96);
+            this.chkSitioLocalDeSubida.Location = new System.Drawing.Point(14, 99);
             this.chkSitioLocalDeSubida.Name = "chkSitioLocalDeSubida";
             this.chkSitioLocalDeSubida.Size = new System.Drawing.Size(59, 17);
             this.chkSitioLocalDeSubida.TabIndex = 1;
@@ -566,7 +565,7 @@
             // chkSitioLocalDeBajada
             // 
             this.chkSitioLocalDeBajada.AutoSize = true;
-            this.chkSitioLocalDeBajada.Location = new System.Drawing.Point(57, 119);
+            this.chkSitioLocalDeBajada.Location = new System.Drawing.Point(14, 122);
             this.chkSitioLocalDeBajada.Name = "chkSitioLocalDeBajada";
             this.chkSitioLocalDeBajada.Size = new System.Drawing.Size(59, 17);
             this.chkSitioLocalDeBajada.TabIndex = 2;
@@ -602,7 +601,6 @@
             this.label3.Size = new System.Drawing.Size(74, 15);
             this.label3.TabIndex = 51;
             this.label3.Text = "Esquemas y";
-            this.label3.Click += new System.EventHandler(this.label3_Click);
             // 
             // label14
             // 
@@ -640,7 +638,6 @@
             this.label17.Size = new System.Drawing.Size(79, 13);
             this.label17.TabIndex = 56;
             this.label17.Text = "Prefijo Ambitos:";
-            this.label17.Click += new System.EventHandler(this.label17_Click);
             // 
             // txtPrefijoMetadata
             // 
@@ -698,7 +695,7 @@
             // 
             // txtEsquemaAReplicar
             // 
-            this.txtEsquemaAReplicar.Location = new System.Drawing.Point(151, 211);
+            this.txtEsquemaAReplicar.Location = new System.Drawing.Point(151, 212);
             this.txtEsquemaAReplicar.Name = "txtEsquemaAReplicar";
             this.txtEsquemaAReplicar.Size = new System.Drawing.Size(111, 20);
             this.txtEsquemaAReplicar.TabIndex = 64;
@@ -707,7 +704,7 @@
             // label18
             // 
             this.label18.AutoSize = true;
-            this.label18.Location = new System.Drawing.Point(148, 197);
+            this.label18.Location = new System.Drawing.Point(148, 198);
             this.label18.Name = "label18";
             this.label18.Size = new System.Drawing.Size(100, 13);
             this.label18.TabIndex = 63;
@@ -725,25 +722,12 @@
             this.chkSuscribirseATodos.Text = "Suscribirse a todos los eventos";
             this.chkSuscribirseATodos.UseVisualStyleBackColor = true;
             // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Checked = true;
-            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox1.Enabled = false;
-            this.checkBox1.Location = new System.Drawing.Point(223, 600);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(157, 17);
-            this.checkBox1.TabIndex = 66;
-            this.checkBox1.Text = "Loguear toda la información";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
             // txtTamañoTransaccion
             // 
             this.txtTamañoTransaccion.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
             this.txtTamañoTransaccion.Location = new System.Drawing.Point(895, 131);
             this.txtTamañoTransaccion.Name = "txtTamañoTransaccion";
-            this.txtTamañoTransaccion.Size = new System.Drawing.Size(58, 20);
+            this.txtTamañoTransaccion.Size = new System.Drawing.Size(51, 20);
             this.txtTamañoTransaccion.TabIndex = 67;
             this.txtTamañoTransaccion.Text = "0";
             // 
@@ -774,16 +758,62 @@
             this.label21.TabIndex = 70;
             this.label21.Text = "(KB)";
             // 
+            // chkUsarDescripcionLocal
+            // 
+            this.chkUsarDescripcionLocal.AutoSize = true;
+            this.chkUsarDescripcionLocal.Location = new System.Drawing.Point(14, 145);
+            this.chkUsarDescripcionLocal.Name = "chkUsarDescripcionLocal";
+            this.chkUsarDescripcionLocal.Size = new System.Drawing.Size(107, 17);
+            this.chkUsarDescripcionLocal.TabIndex = 71;
+            this.chkUsarDescripcionLocal.Text = "Descripción local";
+            this.chkUsarDescripcionLocal.UseVisualStyleBackColor = true;
+            this.chkUsarDescripcionLocal.CheckedChanged += new System.EventHandler(this.chkUsarDescripcionLocal_CheckedChanged);
+            // 
+            // chkUsarDescripcionRemota
+            // 
+            this.chkUsarDescripcionRemota.AutoSize = true;
+            this.chkUsarDescripcionRemota.Location = new System.Drawing.Point(14, 168);
+            this.chkUsarDescripcionRemota.Name = "chkUsarDescripcionRemota";
+            this.chkUsarDescripcionRemota.Size = new System.Drawing.Size(117, 17);
+            this.chkUsarDescripcionRemota.TabIndex = 72;
+            this.chkUsarDescripcionRemota.Text = "Descripción remota";
+            this.chkUsarDescripcionRemota.UseVisualStyleBackColor = true;
+            this.chkUsarDescripcionRemota.CheckedChanged += new System.EventHandler(this.chkUsarDescripcionRemota_CheckedChanged);
+            // 
+            // btnSerializarAmbitos
+            // 
+            this.btnSerializarAmbitos.Location = new System.Drawing.Point(13, 192);
+            this.btnSerializarAmbitos.Name = "btnSerializarAmbitos";
+            this.btnSerializarAmbitos.Size = new System.Drawing.Size(118, 23);
+            this.btnSerializarAmbitos.TabIndex = 73;
+            this.btnSerializarAmbitos.Text = "Serializar Ambitos";
+            this.btnSerializarAmbitos.UseVisualStyleBackColor = true;
+            this.btnSerializarAmbitos.Click += new System.EventHandler(this.btnSerializarAmbitos_Click);
+            // 
+            // pictureBox15
+            // 
+            this.pictureBox15.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox15.Image")));
+            this.pictureBox15.Location = new System.Drawing.Point(948, 12);
+            this.pictureBox15.Name = "pictureBox15";
+            this.pictureBox15.Size = new System.Drawing.Size(37, 37);
+            this.pictureBox15.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.pictureBox15.TabIndex = 74;
+            this.pictureBox15.TabStop = false;
+            this.pictureBox15.Click += new System.EventHandler(this.pictureBox15_Click);
+            // 
             // Formulario
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(994, 652);
+            this.Controls.Add(this.pictureBox15);
+            this.Controls.Add(this.btnSerializarAmbitos);
+            this.Controls.Add(this.chkUsarDescripcionRemota);
+            this.Controls.Add(this.chkUsarDescripcionLocal);
             this.Controls.Add(this.label21);
             this.Controls.Add(this.label20);
             this.Controls.Add(this.label19);
             this.Controls.Add(this.txtTamañoTransaccion);
-            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.chkSuscribirseATodos);
             this.Controls.Add(this.txtEsquemaAReplicar);
             this.Controls.Add(this.label18);
@@ -850,9 +880,9 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
             this.Name = "Formulario";
-            this.Text = "Manager de sincronización - Solo para uso de investigación";
+            this.Text = "Manager de sincronización - Solo para uso de investigación de Microsoft Sync Fram" +
+    "ework";
             this.Load += new System.EventHandler(this.Formulario_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox5)).EndInit();
@@ -868,6 +898,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox12)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox13)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox14)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox15)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -938,11 +969,14 @@
         private System.Windows.Forms.TextBox txtEsquemaAReplicar;
         private System.Windows.Forms.Label label18;
         private System.Windows.Forms.CheckBox chkSuscribirseATodos;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.TextBox txtTamañoTransaccion;
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.Label label21;
+        private System.Windows.Forms.CheckBox chkUsarDescripcionLocal;
+        private System.Windows.Forms.CheckBox chkUsarDescripcionRemota;
+        private System.Windows.Forms.Button btnSerializarAmbitos;
+        private System.Windows.Forms.PictureBox pictureBox15;
     }
 }
 
