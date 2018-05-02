@@ -105,8 +105,8 @@ namespace EjemploDeManejoSyncFramework
             lstLogueo.Items.Clear();
             lstLogueo.Refresh();
             _managerSync = new ManagerSyncFramework();
-            _managerSync.onLoguearVisualmente += Loguear;
-            _managerSync.onProcesoFinalizado += procesoFinalizado;
+            _managerSync.OnLoguearVisualmente += Loguear;
+            _managerSync.OnProcesoFinalizado += procesoFinalizado;
             CargarParametros();
 
             if (!this.chkSitioLocalDeSubida.Checked && !this.chkSitioLocalDeBajada.Checked)
@@ -195,8 +195,8 @@ namespace EjemploDeManejoSyncFramework
         {
             CargarParametros();
             _managerSync = new ManagerSyncFramework();
-            _managerSync.onLoguearVisualmente += Loguear;
-            _managerSync.onProcesoFinalizado += procesoFinalizado;
+            _managerSync.OnLoguearVisualmente += Loguear;
+            _managerSync.OnProcesoFinalizado += procesoFinalizado;
 
             var json = _managerSync.ObtenerAmbitosSerializados(_parametrosReplica);
             Clipboard.SetText(json);
@@ -221,7 +221,7 @@ namespace EjemploDeManejoSyncFramework
                  
                 ListaDeTablas = this.ObtenerListaDeTablas(this.lctChkTablasLocalesAReplicar.CheckedItems),
                 SitioDeSubida = this.chkSitioLocalDeSubida.Checked,
-                tamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString()),
+                TamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString()),
                 TamañoDeTransaccion = Convert.ToUInt32(this.txtTamañoTransaccion.Text.ToString()),
                 TimeOut = Convert.ToInt32(this.txtTimeOut.Text.ToString()),
                 prefijoMetadataSyncFramework = this.txtPrefijoMetadata.Text,

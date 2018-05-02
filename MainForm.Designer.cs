@@ -387,7 +387,6 @@
             // txtHilosReplica
             // 
             this.txtHilosReplica.AccessibleRole = System.Windows.Forms.AccessibleRole.SplitButton;
-            this.txtHilosReplica.Enabled = false;
             this.txtHilosReplica.Location = new System.Drawing.Point(880, 179);
             this.txtHilosReplica.Name = "txtHilosReplica";
             this.txtHilosReplica.Size = new System.Drawing.Size(25, 20);
@@ -801,7 +800,7 @@
             this.pictureBox15.TabStop = false;
             this.pictureBox15.Click += new System.EventHandler(this.pictureBox15_Click);
             // 
-            // Formulario
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -880,7 +879,7 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
-            this.Name = "Formulario";
+            this.Name = "MainForm";
             this.Text = "Manager de sincronización - Solo para uso de investigación de Microsoft Sync Fram" +
     "ework";
             this.Load += new System.EventHandler(this.Formulario_Load);
