@@ -338,7 +338,7 @@ namespace EjemploDeManejoSyncFramework
         {
             if (InvokeRequired)
             {
-                Invoke(new Function(delegate () { Loguear(renglon); }));
+                Invoke(new Function(()=> { Loguear(renglon); }));
             }
             else
             {

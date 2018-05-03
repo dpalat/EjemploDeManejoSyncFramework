@@ -16,10 +16,10 @@ namespace EjemploDeManejoSyncFramework
     {
         private static readonly object _lockAprovisionamiento = new object();
         private static readonly object _lockReplication = new object();
+        private static readonly object _lockLogger = new object(); 
 
         private string _esquemaMetadataSyncFramework;
         private string _esquemaQueSeReplica;
-        private int _hilosAprovisionando = 0;
         private string _nombreDeBaseRemota;
         private string _prefijoMetadataSyncFramework;
         private string _prefijoParaNombreDeAmbito;
@@ -80,6 +80,8 @@ namespace EjemploDeManejoSyncFramework
 
             //Crea si corresponde la tabla de Anclas.
             MantenerTablaDeAnclasLocal(conexionLocalSql);
+            CloseSQLConnection(conexionLocalSql);
+            CloseSQLConnection(conexionRemotoSql);
 
             //Inicia proceso de replica
             if (parametrosReplica.RealizarReplica)
@@ -91,8 +93,15 @@ namespace EjemploDeManejoSyncFramework
             TimeSpan ts = stopWatch.Elapsed;
             TiempoTotalTranscurrido = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
 
-            if (OnProcesoFinalizado != null)
-                OnProcesoFinalizado();
+            OnProcesoFinalizado?.Invoke();
+        }
+
+        private void CloseSQLConnection(IDbConnection dbConnection)
+        {
+            if (dbConnection?.State == ConnectionState.Open)
+            {
+                dbConnection.Close();
+            }
         }
 
         public string ObtenerAmbitosSerializados(ParametrosReplica parametros)
@@ -111,17 +120,19 @@ namespace EjemploDeManejoSyncFramework
             string[] renglones = mensaje.Split(new char[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string renglon in renglones)
             {
-                if (OnLoguearVisualmente != null)
-                    OnLoguearVisualmente(renglon);
+                OnLoguearVisualmente?.Invoke(renglon);
             }
         }
 
         [DebuggerHidden]
         protected void Loguear(string Titulo, string mensaje)
         {
-            Loguear(new string('*', 50).Replace("*", "*-") + Titulo.ToUpper() + new string('*', 50).Replace("*", "*-"));
-            Loguear(mensaje);
-            Loguear(new string('*', 200));
+            lock(_lockLogger)
+            { 
+                Loguear(new string('*', 50).Replace("*", "*-") + Titulo.ToUpper() + new string('*', 50).Replace("*", "*-"));
+                Loguear(mensaje);
+                Loguear(new string('*', 200));
+            }
         }
 
         protected void LoguearEstadisticas(SyncOperationStatistics estadisticas, DbSyncScopeDescription ambito)
@@ -535,11 +546,11 @@ namespace EjemploDeManejoSyncFramework
         private void MantenerAprovisionamientoDeAmbitos(ParametrosReplica parametros, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, DbSyncScopeDescription ambito)
         {
             _semaphore.WaitOne();
-            _hilosAprovisionando++;
+            IDbConnection localSQLConnection = null;
+            IDbConnection remoteSQLConnection = null;
             try
             {
-                IDbConnection localSQLConnection = null;
-                IDbConnection RemoteSQLConnection = null;
+
                 SqlSyncScopeProvisioning proveedorDeAmbitoLocal = null;
                 SqlSyncScopeProvisioning proveedorDeAmbitoRemoto = null;
 
@@ -551,8 +562,8 @@ namespace EjemploDeManejoSyncFramework
                 }
                 if (parametros.DesaprovisionarAmbitosEnServidorRemoto || parametros.AprovisionarAmbitosEnServidorRemoto)
                 {
-                    RemoteSQLConnection = GetSQLConnection(parametros.StringConnectionRemoto);
-                    proveedorDeAmbitoRemoto = CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, RemoteSQLConnection, ambito);
+                    remoteSQLConnection = GetSQLConnection(parametros.StringConnectionRemoto);
+                    proveedorDeAmbitoRemoto = CrearProveedorDeAmbito(esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, remoteSQLConnection, ambito);
                     proveedorDeAmbitoRemoto.CommandTimeout = parametros.TimeOut;
                 }
 
@@ -561,7 +572,7 @@ namespace EjemploDeManejoSyncFramework
                     DesaprovicionarAmbito(localSQLConnection, ambito, proveedorDeAmbitoLocal);
 
                 if (parametros.DesaprovisionarAmbitosEnServidorRemoto)
-                    DesaprovicionarAmbito(RemoteSQLConnection, ambito, proveedorDeAmbitoRemoto);
+                    DesaprovicionarAmbito(remoteSQLConnection, ambito, proveedorDeAmbitoRemoto);
 
                 if (parametros.AprovisionarAmbitosEnServidorLocal)
                     AprovicionarAmbito(ambito, proveedorDeAmbitoLocal);
@@ -572,8 +583,8 @@ namespace EjemploDeManejoSyncFramework
                 if (localSQLConnection != null && localSQLConnection.State == ConnectionState.Open)
                     localSQLConnection.Close();
 
-                if (RemoteSQLConnection != null && RemoteSQLConnection.State == ConnectionState.Open)
-                    RemoteSQLConnection.Close();
+                if (remoteSQLConnection != null && remoteSQLConnection.State == ConnectionState.Open)
+                    remoteSQLConnection.Close();
             }
             catch (Exception errorcito)
             {
@@ -581,16 +592,17 @@ namespace EjemploDeManejoSyncFramework
             }
             finally
             {
+                CloseSQLConnection(localSQLConnection);
+                CloseSQLConnection(remoteSQLConnection);
                 _semaphore.Release(1);
-                _hilosAprovisionando--;
             }
         }
 
         private void MantenerAprovisionamientoDeAmbitosEnHilos(ParametrosReplica parametros, string esquemaMetadataSyncFramework, string prefijoMetadataSyncFramework, List<DbSyncScopeDescription> Ambitos)
         {
+            if (!(parametros.DesaprovisionarAmbitosEnServidorLocal || parametros.AprovisionarAmbitosEnServidorLocal || parametros.DesaprovisionarAmbitosEnServidorRemoto || parametros.AprovisionarAmbitosEnServidorRemoto) ) return;
             _semaphore = new Semaphore(parametros.HilosParaAprovisionar, parametros.HilosParaAprovisionar);
-            _hilosAprovisionando = 0;
-
+            
             foreach (DbSyncScopeDescription ambito in Ambitos)
             {
                 DbSyncScopeDescription LocalAmbito = ambito;
@@ -599,12 +611,16 @@ namespace EjemploDeManejoSyncFramework
                 {
                     MantenerAprovisionamientoDeAmbitos(parametros, esquemaMetadataSyncFramework, prefijoMetadataSyncFramework, LocalAmbito);
                 });
+                HilosEnEjecucion.Add(t);
                 t.Start();
             }
 
-            while (_hilosAprovisionando != 0)
+            var threadCount = 1;
+            while (threadCount > 0)
             {
                 Thread.Sleep(500);
+                threadCount = HilosEnEjecucion.FindAll(x => x.IsAlive).Count;
+                Loguear($"Hilos de aprovisionamiento en ejecución: {threadCount}");
             }
         }
 
@@ -666,6 +682,7 @@ namespace EjemploDeManejoSyncFramework
                 }
 
             }
+            CloseSQLConnection(connectionSQL);
             Loguear("Finalizado proceso de obtener ambitos a procesar, ambitos creados: " + ambitos.Count);
             return ambitos;
         }
@@ -780,11 +797,10 @@ namespace EjemploDeManejoSyncFramework
                     });
                     HilosEnEjecucion.Add(t);
                     t.Start();
-
                 }
                 catch (Exception error)
                 {
-                    Loguear("Error al replicar el ambito: " + ambito.ScopeName + " Error: " + error.ToString());
+                    Loguear("Error al ejecutar el hilo de replicar el ambito: " + ambito.ScopeName + " Error: " + error.ToString());
                 }
             }
 
@@ -793,18 +809,20 @@ namespace EjemploDeManejoSyncFramework
             {
                 Thread.Sleep(500);
                 threadCount = HilosEnEjecucion.FindAll(x => x.IsAlive).Count;
-                Loguear($"Hilos en ejecución: {threadCount}");
+                Loguear($"Hilos de replica en ejecución: {threadCount}");
             }
 
         }
 
         private void StartReplicationOfOneScope(ParametrosReplica parameters, DbSyncScopeDescription ambito)
         {
+            IDbConnection conexionLocalSql = null;
+            IDbConnection conexionRemotoSql = null;
             try
             {
                 SyncOrchestrator orchestrator = ObtenerOrquestadorDeReplica(parameters);
-                var conexionLocalSql = GetSQLConnection(parameters.StringConnectionLocal);
-                var conexionRemotoSql = GetSQLConnection(parameters.StringConnectionRemoto);
+                conexionLocalSql = GetSQLConnection(parameters.StringConnectionLocal);
+                conexionRemotoSql = GetSQLConnection(parameters.StringConnectionRemoto);
 
                 var proveedorLocal = ObtenerProveedor(ambito.ScopeName, conexionLocalSql, parameters.TamañoDeCache, parameters.TamañoDeTransaccion);
                 var proveedorRemoto = ObtenerProveedor(ambito.ScopeName, conexionRemotoSql, parameters.TamañoDeCache, parameters.TamañoDeTransaccion);
@@ -828,12 +846,14 @@ namespace EjemploDeManejoSyncFramework
                     ActualizarAnclaDeSincronizacion(anclaActual, ambito, conexionLocalSql);
                 }
             }
-            catch (Exception e)
+            catch (Exception error)
             {
-                throw e;
+                Loguear("Error al replicar el ambito: " + ambito.ScopeName + " Error: " + error.ToString());
             }
             finally
             {
+                CloseSQLConnection(conexionLocalSql);
+                CloseSQLConnection(conexionRemotoSql);
                 _replicationSemaphore.Release(1);
             } 
 

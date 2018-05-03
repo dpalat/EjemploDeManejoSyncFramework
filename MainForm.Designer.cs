@@ -318,7 +318,7 @@
             this.txtTimeOut.Name = "txtTimeOut";
             this.txtTimeOut.Size = new System.Drawing.Size(64, 20);
             this.txtTimeOut.TabIndex = 20;
-            this.txtTimeOut.Text = "30";
+            this.txtTimeOut.Text = "90";
             // 
             // lblMensajeCantidad
             // 
@@ -391,7 +391,7 @@
             this.txtHilosReplica.Name = "txtHilosReplica";
             this.txtHilosReplica.Size = new System.Drawing.Size(25, 20);
             this.txtHilosReplica.TabIndex = 28;
-            this.txtHilosReplica.Text = "1";
+            this.txtHilosReplica.Text = "50";
             this.txtHilosReplica.TextChanged += new System.EventHandler(this.txtHilosReplica_TextChanged);
             // 
             // label8
@@ -564,6 +564,8 @@
             // chkSitioLocalDeBajada
             // 
             this.chkSitioLocalDeBajada.AutoSize = true;
+            this.chkSitioLocalDeBajada.Checked = true;
+            this.chkSitioLocalDeBajada.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkSitioLocalDeBajada.Location = new System.Drawing.Point(14, 122);
             this.chkSitioLocalDeBajada.Name = "chkSitioLocalDeBajada";
             this.chkSitioLocalDeBajada.Size = new System.Drawing.Size(59, 17);
@@ -712,8 +714,6 @@
             // chkSuscribirseATodos
             // 
             this.chkSuscribirseATodos.AutoSize = true;
-            this.chkSuscribirseATodos.Checked = true;
-            this.chkSuscribirseATodos.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkSuscribirseATodos.Location = new System.Drawing.Point(783, 220);
             this.chkSuscribirseATodos.Name = "chkSuscribirseATodos";
             this.chkSuscribirseATodos.Size = new System.Drawing.Size(172, 17);
@@ -760,6 +760,8 @@
             // chkUsarDescripcionLocal
             // 
             this.chkUsarDescripcionLocal.AutoSize = true;
+            this.chkUsarDescripcionLocal.Checked = true;
+            this.chkUsarDescripcionLocal.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkUsarDescripcionLocal.Location = new System.Drawing.Point(14, 145);
             this.chkUsarDescripcionLocal.Name = "chkUsarDescripcionLocal";
             this.chkUsarDescripcionLocal.Size = new System.Drawing.Size(107, 17);
