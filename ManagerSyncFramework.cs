@@ -386,8 +386,7 @@ namespace EjemploDeManejoSyncFramework
             }
             return sqlConnection;
         }
-
-        
+                
         private void ControlarEsquemas(IDbConnection sqlConnection, string esquemaQueSeReplica)
         {
             ControladorEsquemas controlador = new ControladorEsquemas();

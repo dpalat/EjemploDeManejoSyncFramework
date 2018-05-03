@@ -342,7 +342,7 @@ namespace EjemploDeManejoSyncFramework
             }
             else
             {
-                string timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff",
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff",
                                             CultureInfo.InvariantCulture);
                 lstLogueo.Items.Add(timestamp + " - " + renglon);
                 lstLogueo.Refresh();
