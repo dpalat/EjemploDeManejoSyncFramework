@@ -182,6 +182,7 @@ namespace EjemploDeManejoSyncFramework
                string.Format(
                 "{0}:{1}\n\r{2}:{3}\n\r{4}:{5}\n\r{6}:{7}\n\r{8}:{9}\n\r{10}:{11}\n\r",
                 "\tSource Database  :", e.Connection.Database,
+                "\tTable            :", e.Conflict.LocalChange.TableName,
                 "\tContexto         :", e.Context,
                 "\tAction           :", e.Action.ToString(),
                 "\tSession Id       :", e.Session.SessionId,
@@ -190,7 +191,7 @@ namespace EjemploDeManejoSyncFramework
                 );
             e.Action = ApplyAction.RetryWithForceWrite; //Aplicar cambios del lado del local
 
-            Loguear("proveedor_ApplyChangeFailed", mensaje);
+            Loguear("Proveedor_ApplyChangeFailed", mensaje);
         }
 
         protected void Proveedor_ApplyingChanges(object sender, DbApplyingChangesEventArgs e)
