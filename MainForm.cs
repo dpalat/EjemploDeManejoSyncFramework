@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
@@ -12,7 +11,7 @@ namespace EjemploDeManejoSyncFramework
     {
         private ManagerSyncFramework _managerSync;
         private ParametrosReplica _parametrosReplica;
-        
+
         public MainForm()
         {
             InitializeComponent();
@@ -61,41 +60,42 @@ namespace EjemploDeManejoSyncFramework
 
         private void btnCargarTablas_Click(object sender, EventArgs e)
         {
-            if (!(this.chkSitioLocalDeBajada.Checked || this.chkSitioLocalDeSubida.Checked))
+            if (!(chkSitioLocalDeBajada.Checked || chkSitioLocalDeSubida.Checked))
             {
                 MessageBox.Show("Se requiere setear el sentido de comunicación SUBIDA o BAJADA");
                 return;
             }
 
+
             try
             {
-                string cadeDeConexion = this.txtStringConnectionLocal.Text;
-
-                if (this.chkSitioLocalDeBajada.Checked)
-                {
-                    //La estructura sale del sitio que tiene los datos.
-                    cadeDeConexion = this.txtStringConnectionRemoto.Text;
-                }
-
-                using (SqlConnection conexionLocalSql = new SqlConnection(cadeDeConexion))
+                var cadeDeConexion = chkUsarDescripcionLocal.Checked ? txtStringConnectionLocal.Text : txtStringConnectionRemoto.Text;
+                using (var conexionLocalSql = new SqlConnection(cadeDeConexion))
                 {
                     conexionLocalSql.Open();
-                    SqlCommand comando = new SqlCommand("Select TABLE_SCHEMA, TABLE_NAME From INFORMATION_SCHEMA.Tables" +
-                        " where table_schema = '" + this.txtEsquemaAReplicar.Text + "' order by 1,2");
-                    comando.Connection = conexionLocalSql;
-                    SqlDataReader data = comando.ExecuteReader();
-                    this.lctChkTablasLocalesAReplicar.Items.Clear();
+
+                    var comando = new SqlCommand(
+                        "Select TABLE_SCHEMA, TABLE_NAME From INFORMATION_SCHEMA.Tables" +
+                        " where table_schema = '" + txtEsquemaAReplicar.Text + "' order by 1,2")
+                    {
+                        Connection = conexionLocalSql
+                    };
+
+                    var data = comando.ExecuteReader();
+                    lctChkTablasLocalesAReplicar.Items.Clear();
+
                     while (data.Read())
                     {
-                        this.lctChkTablasLocalesAReplicar.Items.Add(data[0] + "." + data[1]);
+                        lctChkTablasLocalesAReplicar.Items.Add(data[0] + "." + data[1]);
                     }
-                    this.actulizarMensajesDeCantidadDeTablas(true);
+
+                    actulizarMensajesDeCantidadDeTablas(true);
                 }
                 SaveStringConnections();
             }
             catch (Exception dde)
             {
-                this.Loguear("Error al cargar las tablas: " + dde.ToString());
+                Loguear("Error al cargar las tablas: " + dde);
             }
         }
 
@@ -140,7 +140,7 @@ namespace EjemploDeManejoSyncFramework
             File.Delete("stringConnectionLocal.ini");
             File.Delete("stringConnectionRemoto.ini");
             File.AppendAllText("stringConnectionLocal.ini", txtStringConnectionLocal.Text);
-            File.AppendAllText("stringConnectionRemoto.ini", txtStringConnectionRemoto.Text); 
+            File.AppendAllText("stringConnectionRemoto.ini", txtStringConnectionRemoto.Text);
         }
 
         private void RecoveryStringConnections()
@@ -156,7 +156,6 @@ namespace EjemploDeManejoSyncFramework
                     txtStringConnectionLocal.Text = "";
                 }
             }
-
 
             if (File.Exists("stringConnectionRemoto.ini"))
             {
@@ -218,7 +217,7 @@ namespace EjemploDeManejoSyncFramework
                     this.txtStringConnectionLocal.Text + ";Application Name=Manager de Sync Framework;",
                 StringConnectionRemoto =
                     this.txtStringConnectionRemoto.Text + ";Application Name=Manager de Sync Framework;",
-                 
+
                 ListaDeTablas = this.ObtenerListaDeTablas(this.lctChkTablasLocalesAReplicar.CheckedItems),
                 SitioDeSubida = this.chkSitioLocalDeSubida.Checked,
                 TamañoDeCache = Convert.ToUInt32(this.txtTamañoCache.Text.ToString()),
@@ -258,7 +257,7 @@ namespace EjemploDeManejoSyncFramework
         }
 
         private void Formulario_Load(object sender, EventArgs e)
-        {        
+        {
             var listboxContextMenu = new ContextMenuStrip();
             listboxContextMenu.Items.Add("Copiar contenido en el porta papeles").Click += ContextMenuClick_Logs;
             listboxContextMenu.Items.Add("Vaciar").Click += ContextMenuClick_Clean;
@@ -286,15 +285,16 @@ namespace EjemploDeManejoSyncFramework
 
         private void ContextMenuClick(ListBox listbox)
         {
-            var fullLog = string.Empty;
-            foreach (var item in listbox.Items)
-            {
-                fullLog += item + "\r\n";
-            }
-            if (string.IsNullOrEmpty(fullLog)) return;
-            Clipboard.SetText(fullLog);
-        }
+            var sw = new StringWriter();
 
+            foreach (var item in listbox.Items)
+
+            {
+                sw.WriteLine(item);
+            }
+
+            Clipboard.SetText(sw.ToString());
+        }
 
         private void IniciarReplica()
         {
@@ -338,7 +338,7 @@ namespace EjemploDeManejoSyncFramework
         {
             if (InvokeRequired)
             {
-                Invoke(new Function(()=> { Loguear(renglon); }));
+                Invoke(new Function(() => { Loguear(renglon); }));
             }
             else
             {
@@ -359,7 +359,6 @@ namespace EjemploDeManejoSyncFramework
                 retorno.Add(item);
             }
             return retorno;
-                
         }
 
         private void procesoFinalizado()
@@ -368,6 +367,7 @@ namespace EjemploDeManejoSyncFramework
             this.Loguear(string.Format("-------Tiempo Total: {0}--------", this._managerSync.TiempoTotalTranscurrido));
             this.Loguear("-------Proceso finalizado--------");
         }
+
         private void txtHilosReplica_TextChanged(object sender, EventArgs e)
         {
         }
