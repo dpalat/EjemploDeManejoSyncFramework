@@ -620,7 +620,6 @@ namespace EjemploDeManejoSyncFramework
             {
                 Thread.Sleep(500);
                 threadCount = HilosEnEjecucion.FindAll(x => x.IsAlive).Count;
-                Loguear($"Hilos de aprovisionamiento en ejecución: {threadCount}");
             }
         }
 
@@ -809,9 +808,7 @@ namespace EjemploDeManejoSyncFramework
             {
                 Thread.Sleep(500);
                 threadCount = HilosEnEjecucion.FindAll(x => x.IsAlive).Count;
-                Loguear($"Hilos de replica en ejecución: {threadCount}");
             }
-
         }
 
         private void StartReplicationOfOneScope(ParametrosReplica parameters, DbSyncScopeDescription ambito)
